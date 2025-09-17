@@ -5,7 +5,7 @@ import Home from './Pages/Home'
 
 const App = () => {
   return (
-    <div className='min-h-screen max-w-screen-lg'>
+    <div className='min-h-screen'>
       
       <Routes>
         <Route path='/' element={< Home />}/>
