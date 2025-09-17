@@ -1,9 +1,21 @@
+// src/components/Navbar/Navbar.jsx
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const menu_items = [ "Technology", "Blogs", "Finance", "Travel", "Business", "Luxury", "Lifestyle"];
+
+  // Define only your category items here
+  const categories = [
+    "Technology",
+    "Finance",
+    "Travel",
+    "Business",
+    "Luxury",
+    "Lifestyle",
+    "Health",
+    "Education"
+  ];
 
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
@@ -13,21 +25,25 @@ const Navbar = () => {
           LuxeBlog
         </Link>
 
-        <ul className="hidden lg:flex space-x-8 xl:space-x-10 text-gray-600 font-medium text-lg">
-          {menu_items.map((item, idx) => (
-            <li key={idx}>
-              <Link
-                to={`/${item.toLowerCase() === 'home' ? '' : item.toLowerCase()}`}
-                className="hover:text-gray-900 transition-colors duration-200 py-2 relative group"
+        {/* Desktop Menu */}
+        <ul className="hidden lg:flex space-x-8 text-gray-600 font-medium text-lg">
+          {categories.map(cat => (
+            <li key={cat}>
+              <NavLink
+                to={`/category/${cat.toLowerCase()}`}
+                className={({ isActive }) =>
+                  isActive
+                    ? "text-gray-900 border-b-2 border-gray-900 pb-1"
+                    : "hover:text-gray-900 transition-colors duration-200"
+                }
               >
-                {item}
-                <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-gray-900 transition-all group-hover:w-full"></span>
-              </Link>
+                {cat}
+              </NavLink>
             </li>
           ))}
         </ul>
 
-        <div className="hidden lg:flex items-center space-x-6">
+        <div className="hidden lg:flex items-center">
           <Link
             to="/subscribe"
             className="bg-black text-white px-6 py-2 rounded-md font-medium text-lg hover:bg-gray-800 transition-colors duration-200"
@@ -36,26 +52,28 @@ const Navbar = () => {
           </Link>
         </div>
 
+        {/* Mobile Toggle */}
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           className="text-gray-700 p-2 rounded-md hover:bg-gray-100 focus:outline-none lg:hidden"
           aria-label="Toggle menu"
         >
-          <span className="text-3xl sm:text-2xl">{isMenuOpen ? "✕" : "☰"}</span>
+          <span className="text-3xl">{isMenuOpen ? "✕" : "☰"}</span>
         </button>
       </div>
 
-      <div className={`lg:hidden transition-all duration-300 ease-in-out ${isMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+      {/* Mobile Menu */}
+      <div className={`lg:hidden transition-all duration-300 ease-in-out ${isMenuOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0 overflow-hidden"}`}>
         <div className="px-4 pt-2 pb-4 bg-white border-t border-gray-100">
-          <ul className="space-y-2 text-base sm:text-lg font-medium text-gray-600">
-            {menu_items.map((item, idx) => (
-              <li key={idx}>
+          <ul className="space-y-2 text-base font-medium text-gray-600">
+            {categories.map(cat => (
+              <li key={cat}>
                 <Link
-                  to={`/${item.toLowerCase() === 'home' ? '' : item.toLowerCase()}`}
+                  to={`/category/${cat.toLowerCase()}`}
                   onClick={() => setIsMenuOpen(false)}
                   className="block py-3 px-4 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors duration-200"
                 >
-                  {item}
+                  {cat}
                 </Link>
               </li>
             ))}
