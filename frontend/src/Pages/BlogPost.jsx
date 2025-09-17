@@ -1,4 +1,3 @@
-// src/pages/BlogPost.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import Navbar from "../components/Navbar/Navbar";
@@ -10,7 +9,7 @@ const BlogPost = () => {
   const [loading, setLoading] = useState(true);
   const [relatedPosts, setRelatedPosts] = useState([]);
 
-  // Mock data - replace with your API calls
+  // Mock data - replace with API calls
   useEffect(() => {
     const fetchPostData = async () => {
       try {

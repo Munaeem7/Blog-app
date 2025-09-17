@@ -1,11 +1,10 @@
-// src/components/Navbar/Navbar.jsx
 import React, { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Define only your category items here
+  // Define only category items here
   const categories = [
     "Technology",
     "Finance",

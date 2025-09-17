@@ -1,4 +1,3 @@
-// src/components/latest/LatestGrid.jsx
 import React from "react";
 import BlogCard from "../blog/BlogCard";
 
