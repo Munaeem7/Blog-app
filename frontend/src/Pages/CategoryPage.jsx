@@ -14,7 +14,7 @@ const CategoryPage = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Mock data - replace with your API calls
+  // Mock data - replace with API calls
   useEffect(() => {
     const fetchCategoryData = async () => {
       try {
