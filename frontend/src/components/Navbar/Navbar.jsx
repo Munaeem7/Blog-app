@@ -29,7 +29,7 @@ const Navbar = () => {
           {categories.map(cat => (
             <li key={cat}>
               <NavLink
-                to={`/category/${cat.toLowerCase()}`}
+                to={`/category/${cat.toLowerCase()}`} onClick={() => window.scrollTo(0, 0)}
                 className={({ isActive }) =>
                   isActive
                     ? "text-gray-900 border-b-2 border-gray-900 pb-1"

@@ -20,7 +20,7 @@ const CategoryPage = () => {
       try {
         setLoading(true);
         
-        // In a real app, you would fetch from your API:
+        // In a real app, fetch from your API:
         // const categoryRes = await axios.get(`/api/categories/${slug}`);
         // const postsRes = await axios.get(`/api/categories/${slug}/posts`);
         
@@ -28,7 +28,7 @@ const CategoryPage = () => {
         const categoryData = {
           name: slug.charAt(0).toUpperCase() + slug.slice(1),
           description: `Explore our latest articles and insights about ${slug}. Stay updated with the most relevant content in this category.`,
-          imageUrl: "/images/category-header.jpg",
+          imageUrl: "/img1.webp",
         };
         
         // Mock posts data filtered by category
@@ -41,7 +41,7 @@ const CategoryPage = () => {
             author: "Jane Doe",
             publishedDate: "2025-09-15",
             category: "travel",
-            imageUrl: "/images/eco-travel.jpg",
+            imageUrl: "/img1.webp",
             readTime: "6 min read",
           },
           {
@@ -52,7 +52,7 @@ const CategoryPage = () => {
             author: "John Smith",
             publishedDate: "2025-09-14",
             category: "finance",
-            imageUrl: "/images/retirement.jpg",
+            imageUrl: "/img1.webp",
             readTime: "5 min read",
           },
           {
@@ -63,7 +63,7 @@ const CategoryPage = () => {
             author: "Alex Johnson",
             publishedDate: "2025-09-13",
             category: "technology",
-            imageUrl: "/images/ai-finance.jpg",
+            imageUrl: "/img1.webp",
             readTime: "7 min read",
           },
           {
@@ -74,7 +74,7 @@ const CategoryPage = () => {
             author: "Emily Clark",
             publishedDate: "2025-09-12",
             category: "luxury",
-            imageUrl: "/images/luxury-interiors.jpg",
+            imageUrl: "/img2.webp",
             readTime: "6 min read",
           },
           {
@@ -85,7 +85,7 @@ const CategoryPage = () => {
             author: "Michael Lee",
             publishedDate: "2025-09-11",
             category: "travel",
-            imageUrl: "/images/luxury-destinations.jpg",
+            imageUrl: "/img3.webp",
             readTime: "8 min read",
           },
           {
@@ -96,7 +96,7 @@ const CategoryPage = () => {
             author: "Sarah Patel",
             publishedDate: "2025-09-10",
             category: "finance",
-            imageUrl: "/images/investment-strategies.jpg",
+            imageUrl: "/img3.webp",
             readTime: "7 min read",
           },
         ];
@@ -265,7 +265,7 @@ const CategoryPage = () => {
                   {['Technology', 'Finance', 'Travel', 'Luxury', 'Lifestyle'].map(cat => (
                     <Link
                       key={cat}
-                      to={`/category/${cat.toLowerCase()}`}
+                      to={`/category/${cat.toLowerCase()}`} onClick={() => window.scrollTo(0, 0)}
                       className={`block py-2 px-3 rounded-md transition-colors ${
                         cat.toLowerCase() === slug.toLowerCase() 
                           ? 'bg-gray-200 text-gray-900 font-medium' 

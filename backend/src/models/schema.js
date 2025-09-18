@@ -1,6 +1,6 @@
 import { query } from "../utils/db.js";
 import dotenv from "dotenv";
-
+  
 dotenv.config();
 
 const schema = async () => {

@@ -10,7 +10,7 @@ const latestPosts = [
     author: "Jane Doe",
     publishedDate: "2025-09-15",
     category: "Travel",
-    imageUrl: "/images/eco-travel.jpg",
+    imageUrl: "/img1.webp",
     readTime: "6 min read",
   },
   {
@@ -21,7 +21,7 @@ const latestPosts = [
     author: "John Smith",
     publishedDate: "2025-09-14",
     category: "Finance",
-    imageUrl: "/images/retirement.jpg",
+    imageUrl: "/img2.webp",
     readTime: "5 min read",
   },
   {
@@ -32,7 +32,7 @@ const latestPosts = [
     author: "Alex Johnson",
     publishedDate: "2025-09-13",
     category: "Technology",
-    imageUrl: "/images/ai-finance.jpg",
+    imageUrl: "/img3.webp",
     readTime: "7 min read",
   },
   {
@@ -43,7 +43,7 @@ const latestPosts = [
     author: "Emily Clark",
     publishedDate: "2025-09-12",
     category: "Luxury",
-    imageUrl: "/images/luxury-interiors.jpg",
+    imageUrl: "/img1.webp",
     readTime: "6 min read",
   },
   {
@@ -54,7 +54,7 @@ const latestPosts = [
     author: "Michael Lee",
     publishedDate: "2025-09-11",
     category: "Travel",
-    imageUrl: "/images/luxury-destinations.jpg",
+    imageUrl: "/img2.webp",
     readTime: "8 min read",
   },
   {
@@ -65,7 +65,7 @@ const latestPosts = [
     author: "Sarah Patel",
     publishedDate: "2025-09-10",
     category: "Finance",
-    imageUrl: "/images/investment-strategies.jpg",
+    imageUrl: "/img3.webp",
     readTime: "7 min read",
   },
 ];

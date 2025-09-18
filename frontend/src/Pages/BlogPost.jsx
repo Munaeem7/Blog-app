@@ -45,7 +45,7 @@ const BlogPost = () => {
             author: "Jane Doe",
             publishedDate: "2025-09-15",
             category: "Travel",
-            imageUrl: "/images/eco-travel.jpg",
+            imageUrl: "/img1.webp",
             readTime: "6 min read",
           },
           {
@@ -57,7 +57,7 @@ const BlogPost = () => {
             author: "John Smith",
             publishedDate: "2025-09-14",
             category: "Finance",
-            imageUrl: "/images/retirement.jpg",
+            imageUrl: "/img2.webp",
             readTime: "5 min read",
           },
           // Add other posts as needed
@@ -226,7 +226,7 @@ const BlogPost = () => {
             <div className="grid md:grid-cols-3 gap-6">
               {relatedPosts.map(relatedPost => (
                 <article key={relatedPost.id} className="group bg-white rounded-lg border border-gray-100 overflow-hidden transition-all duration-300 hover:bg-gray-50 hover:shadow-sm h-full flex flex-col">
-                  <Link to={`/blog/${relatedPost.slug}`} className="block flex-shrink-0">
+                  <Link to={`/blog/${relatedPost.slug}`} onClick={() => window.scrollTo(0, 0)} className="block flex-shrink-0">
                     <div className="aspect-video bg-gray-100 overflow-hidden">
                       <img 
                         src={relatedPost.imageUrl} 
@@ -260,7 +260,7 @@ const BlogPost = () => {
                         <span className="text-xs font-medium text-gray-700">{relatedPost.author}</span>
                       </div>
                       <Link 
-                        to={`/blog/${relatedPost.slug}`}
+                        to={`/blog/${relatedPost.slug}`} 
                         className="text-xs font-medium text-gray-900 hover:text-gray-700 transition-colors duration-200 flex items-center"
                       >
                         Read
