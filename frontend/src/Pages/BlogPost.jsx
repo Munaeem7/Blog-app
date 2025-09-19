@@ -242,7 +242,7 @@ const BlogPost = () => {
                       <span>{relatedPost.readTime}</span>
                     </div>
                     
-                    <Link to={`/blog/${relatedPost.slug}`} className="group-hover:text-gray-900 mb-2 flex-grow">
+                    <Link to={`/blog/${relatedPost.slug}`} onClick={() => window.scrollTo(0, 0)} className="group-hover:text-gray-900 mb-2 flex-grow">
                       <h3 className="text-lg font-semibold text-gray-800 line-clamp-2 leading-tight transition-colors duration-200">
                         {relatedPost.title}
                       </h3>
@@ -260,7 +260,7 @@ const BlogPost = () => {
                         <span className="text-xs font-medium text-gray-700">{relatedPost.author}</span>
                       </div>
                       <Link 
-                        to={`/blog/${relatedPost.slug}`} 
+                        to={`/blog/${relatedPost.slug}`} onClick={() => window.scrollTo(0, 0)}
                         className="text-xs font-medium text-gray-900 hover:text-gray-700 transition-colors duration-200 flex items-center"
                       >
                         Read
