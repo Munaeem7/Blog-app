@@ -11,7 +11,7 @@ const Footer = () => {
           <div className="lg:col-span-1">
             <Link to="/" className="flex items-center text-2xl font-bold text-white mb-6">
               <span className="bg-white text-gray-900 rounded-md w-10 h-10 flex items-center justify-center mr-3">LB</span>
-              LuxeBlog
+              WealthyMiles
             </Link>
             <p className="text-gray-400 mb-6 text-lg">
               Discover premium content on technology, finance, luxury, and lifestyle. 
@@ -148,7 +148,7 @@ const Footer = () => {
         {/* Bottom Footer */}
         <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-400 text-lg mb-4 md:mb-0">
-            © {new Date().getFullYear()} LuxeBlog. All rights reserved.
+            © {new Date().getFullYear()} WealthyMiles. All rights reserved.
           </p>
           <div className="flex space-x-6">
             <Link to="/privacy" className="text-gray-400 hover:text-white transition-colors duration-200 text-lg">
