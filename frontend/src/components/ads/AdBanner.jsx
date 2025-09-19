@@ -1,4 +1,3 @@
-// src/components/ads/AdBanner.jsx
 import React from "react";
 
 const AdBanner = () => (

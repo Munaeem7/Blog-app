@@ -9,6 +9,7 @@ const pool = new Pool({
     rejectUnauthorized: false
   },
 });
+console.log(process.env.DATABASE_URL)
 
 //  to execute queries
 export const query = (text, params) => pool.query(text, params);
