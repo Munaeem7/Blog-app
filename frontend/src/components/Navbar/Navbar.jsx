@@ -25,19 +25,9 @@ const Navbar = () => {
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
       <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-<<<<<<< HEAD
         <Link to="/" className="flex items-center text-3xl sm:text-2xl font-bold text-gray-900">
           <span className="bg-gray-900 text-white rounded-md w-10 h-10 flex items-center justify-center mr-3">WM</span>
           WealthyMiles
-=======
-        <Link 
-          to="/" 
-          className="flex items-center text-3xl sm:text-2xl font-bold text-gray-900"
-          onClick={() => window.scrollTo(0, 0)}
-        >
-          <span className="bg-gray-900 text-white rounded-md w-10 h-10 flex items-center justify-center mr-3">LB</span>
-          LuxeBlog
->>>>>>> ce1c24fac090890745fa784bc8f45966cd27fbf6
         </Link>
 
         {/* Desktop Menu */}
