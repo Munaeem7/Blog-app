@@ -24,8 +24,8 @@ const BlogCard = ({ post }) => {
 
   return (
     <article className="group bg-white rounded-lg border border-gray-100 overflow-hidden transition-all duration-300 hover:bg-gray-50 hover:shadow-sm cursor-pointer h-full flex flex-col">
-      {/* Image container */}
-      <Link to={`/blog/${slug}`} className="block flex-shrink-0 relative">
+      {/* Image container  */}
+      <Link to={`/category/${category.toLowerCase()}/${slug}`} className="block flex-shrink-0 relative">
         <div className="aspect-video bg-gray-100 overflow-hidden">
           <img 
             src={imageUrl || "/api/placeholder/300/200"} 
@@ -34,7 +34,7 @@ const BlogCard = ({ post }) => {
             loading="lazy"
           />
         </div>
-        <div className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <div className="absolute top-3 left-3">
           <span className="bg-gray-900 text-white px-2 py-1 rounded text-xs font-medium tracking-wide">
             {category}
           </span>
@@ -50,8 +50,8 @@ const BlogCard = ({ post }) => {
           <span>{readTime}</span>
         </div>
         
-        {/* Title */}
-        <Link to={`/blog/${slug}`} className="group-hover:text-gray-900 mb-2 flex-grow">
+        {/* Title  */}
+        <Link to={`/category/${category.toLowerCase()}/${slug}`} className="group-hover:text-gray-900 mb-2 flex-grow">
           <h3 className="text-lg font-semibold text-gray-800 line-clamp-2 leading-tight transition-colors duration-200">
             {title}
           </h3>
@@ -62,7 +62,7 @@ const BlogCard = ({ post }) => {
           {excerpt}
         </p>
         
-        {/* Author and read more */}
+        {/* Author and read more  */}
         <div className="flex items-center justify-between pt-2 mt-auto">
           <div className="flex items-center">
             <div className="w-7 h-7 bg-gray-200 rounded-full flex items-center justify-center text-xs font-medium text-gray-600 mr-2">
@@ -71,7 +71,7 @@ const BlogCard = ({ post }) => {
             <span className="text-xs font-medium text-gray-700">{author}</span>
           </div>
           <Link 
-            to={`/blog/${slug}`}
+            to={`/category/${category.toLowerCase()}/${slug}`}
             className="text-xs font-medium text-gray-900 hover:text-gray-700 transition-colors duration-200 flex items-center"
           >
             Read

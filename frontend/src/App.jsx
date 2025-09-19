@@ -11,8 +11,8 @@ const App = () => {
       
       <Routes>
         <Route path='/' element={< Home />}/>
-        <Route path='/category/:slug' element={< CategoryPage />}/>
-        <Route path='/blog/:slug' element={<BlogPost />}/>
+       <Route path='/category/:categorySlug' element={<CategoryPage />}/>
+        <Route path='/category/:categorySlug/:postSlug' element={<BlogPost />}/>
       </Routes>
     </div>
   );
