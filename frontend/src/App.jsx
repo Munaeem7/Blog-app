@@ -14,6 +14,7 @@ const App = () => {
         <Route path='/' element={< Home />}/>
         <Route path='/category/:categorySlug' element={<CategoryPage />}/>
         <Route path='/category/:categorySlug/:postSlug' element={<BlogPost />}/>
+        <Route path='/dashboard' element={<AdminDashboard />}/>
       </Routes>
     </div>
   );

@@ -1,271 +1,412 @@
-// MyProFroalaEditor.jsx
-import React, { useRef, useState } from "react";
-import FroalaEditor from "react-froala-wysiwyg";
-import "froala-editor/css/froala_editor.pkgd.min.css";
-import "froala-editor/css/froala_style.min.css";
+import React, { useState, useCallback } from 'react';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Image from '@tiptap/extension-image';
+import Link from '@tiptap/extension-link';
+import Underline from '@tiptap/extension-underline';
+import TextAlign from '@tiptap/extension-text-align';
+import { 
+  FiBold, 
+  FiItalic, 
+  FiUnderline, 
+  FiList, 
+  FiAlignLeft, 
+  FiAlignCenter, 
+  FiAlignRight, 
+  FiLink, 
+  FiImage,
+  FiSave,
+  FiGlobe,
+  FiType,
+  FiClock
+} from 'react-icons/fi';
 
-/**
- * Pro Froala WYSIWYG with Cloudinary unsigned upload
- *
- * REQUIRED env variables:
- * - REACT_APP_CLOUDINARY_CLOUD_NAME
- * - REACT_APP_CLOUDINARY_UPLOAD_PRESET (unsigned preset)
- *
- * Notes:
- * - For higher security / larger files use a signed server-side upload (see notes at bottom).
- * - This component intercepts image uploads and uploads each file to Cloudinary,
- *   then inserts the returned secure_url into the editor.
- */
+const BlogEditor = ({ onSave, onPublish, initialData, categories }) => {
+  const [title, setTitle] = useState(initialData?.title || '');
+  const [excerpt, setExcerpt] = useState(initialData?.excerpt || '');
+  const [selectedCategory, setSelectedCategory] = useState(initialData?.category || '');
+  const [featuredImage, setFeaturedImage] = useState(initialData?.featuredImage || '');
+  const [status, setStatus] = useState(initialData?.status || 'draft');
+  const [loading, setLoading] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
 
-const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
-const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`;
-
-
-const MyProFroalaEditor = ({ initialHTML = "<h1>Hello, Froala!</h1><p>Start typing...</p>", onSave }) => {
-  const [content, setContent] = useState(initialHTML);
-  const [uploading, setUploading] = useState(false);
-  const editorRef = useRef(null);
-
-  // Upload a single File object to Cloudinary (unsigned)
-  const uploadToCloudinary = async (file) => {
-    if (!CLOUD_NAME || !UPLOAD_PRESET) {
-      throw new Error(
-        "Cloudinary variables not set. Add REACT_APP_CLOUDINARY_CLOUD_NAME and REACT_APP_CLOUDINARY_UPLOAD_PRESET to your .env"
-      );
-    }
-
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", UPLOAD_PRESET);
-
-    const resp = await fetch(CLOUDINARY_UPLOAD_URL, {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!resp.ok) {
-      const errText = await resp.text();
-      throw new Error("Cloudinary upload failed: " + errText);
-    }
-
-    const data = await resp.json();
-    // Cloudinary returns secure_url
-    return data.secure_url || data.url;
-  };
-
-  // Froala config
-  const config = {
-    placeholderText: "Start typing your content...",
-    charCounterCount: true,
-    // toolbar layout — pro-level options
-    toolbarButtons: [
-      "undo",
-      "redo",
-      "fullscreen",
-      "bold",
-      "italic",
-      "underline",
-      "strikeThrough",
-      "subscript",
-      "superscript",
-      "|",
-      "fontFamily",
-      "fontSize",
-      "color",
-      "paragraphFormat", // includes headings H1,H2...
-      "paragraphStyle",
-      "|",
-      "align",
-      "formatOL",
-      "formatUL",
-      "outdent",
-      "indent",
-      "|",
-      "insertLink",
-      "insertImage",
-      "insertVideo",
-      "insertTable",
-      "|",
-      "quote",
-      "insertHR",
-      "html",
-      "help",
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Image,
+      Underline,
+      Link.configure({
+        openOnClick: false,
+      }),
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+      }),
     ],
-    imageInsertButtons: ["imageBack", "|", "imageUpload", "imageByURL"],
-    // disable Froala's own direct upload so we handle via events
-    imageUpload: false,
-    events: {
-      // modelChanged updates state
-      "contentChanged": function () {
-        const editor = this;
-        // read HTML
-        const html = editor.html.get();
-        setContent(html);
+    content: initialData?.content || '<p>Start writing your amazing content here...</p>',
+    editorProps: {
+      attributes: {
+        class: 'prose prose-lg max-w-none focus:outline-none min-h-300 p-4',
       },
-
-      // Intercept image uploads (from file selection or drag/drop)
-      "image.beforeUpload": async function (files) {
-        // files is a FileList
-        if (!files || files.length === 0) return false;
-        const editor = this;
-
-        // Prevent Froala's default upload behavior
-        // We'll handle the upload and insertion ourselves
-        try {
-          setUploading(true);
-          for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            // optional: simple client-side size check
-            if (file.size > 10 * 1024 * 1024) {
-              // 10MB limit
-              editor.events.trigger("image.error", ["File too large (max 10MB)."]);
-              continue;
-            }
-            const url = await uploadToCloudinary(file);
-            // Insert image into editor. Use Froala API if available, else fallback to html insertion.
-            try {
-              if (editor.image && typeof editor.image.insert === "function") {
-                // arguments: src, check_toload, alt, title
-                editor.image.insert(url, true, null, null);
-              } else {
-                editor.html.insert(`<img src="${url}" alt="Image" />`);
-              }
-            } catch (err) {
-              // fallback
-              editor.html.insert(`<img src="${url}" alt="Image" />`);
-            }
-          }
-        } catch (err) {
-          console.error("Upload error", err);
-          // trigger Froala's image error event so user gets feedback
-          if (this.events && typeof this.events.trigger === "function") {
-            this.events.trigger("image.error", [err.message || "Upload failed."]);
-          }
-        } finally {
-          setUploading(false);
-        }
-
-        // Return false to stop the default image upload.
-        return false;
-      },
-
-      // Insert by URL button: we still rely on Froala's imageByURL behavior, so no changes required.
-      // You can also add a custom toolbar button to prompt for a URL and insert it.
     },
-    quickInsertTags: [], // disable quick insert (optional)
-    tableInsertHelper: true,
-    tabSpaces: 4,
-    // other useful options
-    videoInsertButtons: ["videoBack", "|", "videoByURL"],
-    linkInsertButtons: ["linkBack", "|", "linkByURL"],
-    htmlAllowedTags: [".*"], // allow all tags (be careful — sanitize server-side if accepting user content)
-  };
+  });
 
-  // Manual insert of an arbitrary image URL (exposed to UI)
-  const insertImageUrl = (url) => {
-    const ed = editorRef.current && editorRef.current.editor;
-    if (!ed) {
+  const addImage = useCallback(async () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    
+    input.onchange = async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      try {
+        setImageUploading(true);
+        // Replace with your actual upload function
+        const imageUrl = await uploadToCloudinary(file);
+        
+        if (editor && imageUrl) {
+          editor.chain().focus().setImage({ src: imageUrl }).run();
+        }
+      } catch (error) {
+        console.error('Image upload failed:', error);
+      } finally {
+        setImageUploading(false);
+      }
+    };
+
+    input.click();
+  }, [editor]);
+
+  const setLink = useCallback(() => {
+    if (!editor) return;
+
+    const previousUrl = editor.getAttributes('link').href;
+    const url = window.prompt('URL', previousUrl);
+
+    if (url === null) return;
+    if (url === '') {
+      editor.chain().focus().extendMarkRange('link').unsetLink().run();
       return;
     }
+
+    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+  }, [editor]);
+
+  const handleSave = async (publishStatus = 'draft') => {
+    if (!editor || !title) return;
+
+    setLoading(true);
     try {
-      if (ed.image && typeof ed.image.insert === "function") {
-        ed.image.insert(url, true, null, null);
+      const postData = {
+        title,
+        content: editor.getHTML(),
+        excerpt,
+        category: selectedCategory,
+        featuredImage,
+        status: publishStatus,
+        slug: generateSlug(title),
+        readTime: calculateReadTime(editor.getText())
+      };
+
+      if (publishStatus === 'published') {
+        await onPublish(postData);
       } else {
-        ed.html.insert(`<img src="${url}" alt="Image" />`);
+        await onSave(postData);
       }
-    } catch {
-      ed.html.insert(`<img src="${url}" alt="Image" />`);
+    } catch (error) {
+      console.error('Error saving post:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Example Save handler — call parent onSave or log to console
-  const handleSave = () => {
-    // IMPORTANT: sanitize server-side before storing / rendering if content comes from users
-    if (onSave && typeof onSave === "function") {
-      onSave(content);
-    } else {
-      console.log("Editor content:", content);
-      alert("Content logged to console (or pass onSave prop).");
-    }
+  const generateSlug = (title) => {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9 -]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
   };
 
-  // Small UI to show image URL paste box
-  const [imageUrlInput, setImageUrlInput] = useState("");
+  const calculateReadTime = (text) => {
+    const wordsPerMinute = 200;
+    const words = text.trim().split(/\s+/).length;
+    return Math.ceil(words / wordsPerMinute);
+  };
+
+  const uploadToCloudinary = async (file) => {
+    // Implement your Cloudinary upload logic here
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
+
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/upload`,
+      {
+        method: 'POST',
+        body: formData,
+      }
+    );
+
+    const data = await response.json();
+    return data.secure_url;
+  };
+
+  if (!editor) {
+    return null;
+  }
 
   return (
-    <div style={{ maxWidth: 1000, margin: "0 auto" }}>
-      <h3 style={{ marginBottom: 8 }}>Pro Froala Editor (Cloudinary image uploads)</h3>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">
+            {initialData ? 'Edit Post' : 'Create New Post'}
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Craft engaging content for your audience
+          </p>
+        </div>
 
-      <div style={{ marginBottom: 8 }}>
-        <small style={{ color: "#666" }}>
-          Upload images (drag & drop or use image button). Images will be uploaded to Cloudinary.
-        </small>
-      </div>
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Sidebar */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Featured Image */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Featured Image</h3>
+              <div className="flex flex-col items-center">
+                {featuredImage ? (
+                  <img
+                    src={featuredImage}
+                    alt="Featured"
+                    className="w-full h-48 object-cover rounded-lg mb-3"
+                  />
+                ) : (
+                  <div className="w-full h-48 bg-gray-100 rounded-lg flex items-center justify-center mb-3">
+                    <span className="text-gray-400">No image selected</span>
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      setImageUploading(true);
+                      try {
+                        const url = await uploadToCloudinary(file);
+                        setFeaturedImage(url);
+                      } catch (error) {
+                        console.error('Upload failed:', error);
+                      } finally {
+                        setImageUploading(false);
+                      }
+                    }
+                  }}
+                  className="hidden"
+                  id="featured-image-upload"
+                />
+                <label
+                  htmlFor="featured-image-upload"
+                  className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+                >
+                  {imageUploading ? 'Uploading...' : 'Upload Image'}
+                </label>
+              </div>
+            </div>
 
-      <FroalaEditor
-        ref={editorRef}
-        tag="textarea"
-        model={content}
-        config={config}
-        onModelChange={(model) => setContent(model)}
-      />
+            {/* Post Settings */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Post Settings</h3>
+              
+              {/* Category */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Category
+                </label>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select a category</option>
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat.toLowerCase()}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-        <input
-          type="text"
-          placeholder="Paste image URL and click Insert"
-          value={imageUrlInput}
-          onChange={(e) => setImageUrlInput(e.target.value)}
-          style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid #ccc" }}
-        />
-        <button
-          onClick={() => {
-            if (imageUrlInput.trim()) {
-              insertImageUrl(imageUrlInput.trim());
-              setImageUrlInput("");
-            }
-          }}
-          style={{
-            padding: "8px 12px",
-            borderRadius: 6,
-            border: "none",
-            cursor: "pointer",
-            background: "#2b6cb0",
-            color: "white",
-          }}
-        >
-          Insert URL
-        </button>
+              {/* Status */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Status
+                </label>
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="draft">Draft</option>
+                  <option value="published">Published</option>
+                </select>
+              </div>
 
-        <button
-          onClick={handleSave}
-          style={{
-            padding: "8px 12px",
-            borderRadius: 6,
-            border: "none",
-            cursor: "pointer",
-            background: "#2f855a",
-            color: "white",
-          }}
-        >
-          Save
-        </button>
-      </div>
+              {/* Read Time */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Read Time
+                </label>
+                <div className="flex items-center text-gray-600">
+                  <FiClock className="mr-2" />
+                  {calculateReadTime(editor.getText())} min read
+                </div>
+              </div>
+            </div>
 
-      <div style={{ marginTop: 12 }}>
-        <strong>Uploading:</strong> {uploading ? "In progress..." : "Idle"}
-      </div>
+            {/* Action Buttons */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="space-y-3">
+                <button
+                  onClick={() => handleSave('draft')}
+                  disabled={loading || !title}
+                  className="w-full bg-gray-600 text-white px-4 py-2 rounded-md font-medium hover:bg-gray-700 disabled:opacity-50 transition-colors flex items-center justify-center"
+                >
+                  <FiSave className="mr-2" />
+                  {loading ? 'Saving...' : 'Save Draft'}
+                </button>
+                <button
+                  onClick={() => handleSave('published')}
+                  disabled={loading || !title}
+                  className="w-full bg-green-600 text-white px-4 py-2 rounded-md font-medium hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center justify-center"
+                >
+                  <FiGlobe className="mr-2" />
+                  {loading ? 'Publishing...' : 'Publish Post'}
+                </button>
+              </div>
+            </div>
+          </div>
 
-      <div style={{ marginTop: 16 }}>
-        <p style={{ marginBottom: 6 }}><strong>Current HTML Content (preview)</strong></p>
-        <div style={{ border: "1px solid #eee", padding: 12, borderRadius: 6, background: "#fff" }}>
-          {/* Danger: rendering HTML — only safe for preview in trusted contexts. */}
-          <div dangerouslySetInnerHTML={{ __html: content }} />
+          {/* Main Content */}
+          <div className="lg:col-span-3">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+              {/* Title Input */}
+              <div className="p-6 border-b border-gray-200">
+                <input
+                  type="text"
+                  placeholder="Enter post title..."
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full text-3xl font-bold text-gray-900 placeholder-gray-400 border-none outline-none focus:ring-0"
+                />
+                <input
+                  type="text"
+                  placeholder="Brief excerpt..."
+                  value={excerpt}
+                  onChange={(e) => setExcerpt(e.target.value)}
+                  className="w-full mt-2 text-gray-600 placeholder-gray-400 border-none outline-none focus:ring-0"
+                />
+              </div>
+
+              {/* Toolbar */}
+              <div className="border-b border-gray-200 p-4 bg-gray-50">
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    onClick={() => editor.chain().focus().toggleBold().run()}
+                    className={`p-2 rounded hover:bg-gray-200 ${
+                      editor.isActive('bold') ? 'bg-gray-200' : ''
+                    }`}
+                  >
+                    <FiBold />
+                  </button>
+                  <button
+                    onClick={() => editor.chain().focus().toggleItalic().run()}
+                    className={`p-2 rounded hover:bg-gray-200 ${
+                      editor.isActive('italic') ? 'bg-gray-200' : ''
+                    }`}
+                  >
+                    <FiItalic />
+                  </button>
+                  <button
+                    onClick={() => editor.chain().focus().toggleUnderline().run()}
+                    className={`p-2 rounded hover:bg-gray-200 ${
+                      editor.isActive('underline') ? 'bg-gray-200' : ''
+                    }`}
+                  >
+                    <FiUnderline />
+                  </button>
+                  <div className="w-px h-6 bg-gray-300 mx-1"></div>
+                  <button
+                    onClick={() => editor.chain().focus().toggleBulletList().run()}
+                    className={`p-2 rounded hover:bg-gray-200 ${
+                      editor.isActive('bulletList') ? 'bg-gray-200' : ''
+                    }`}
+                  >
+                    <FiList />
+                  </button>
+                  <div className="w-px h-6 bg-gray-300 mx-1"></div>
+                  <button
+                    onClick={() => editor.chain().focus().setTextAlign('left').run()}
+                    className={`p-2 rounded hover:bg-gray-200 ${
+                      editor.isActive({ textAlign: 'left' }) ? 'bg-gray-200' : ''
+                    }`}
+                  >
+                    <FiAlignLeft />
+                  </button>
+                  <button
+                    onClick={() => editor.chain().focus().setTextAlign('center').run()}
+                    className={`p-2 rounded hover:bg-gray-200 ${
+                      editor.isActive({ textAlign: 'center' }) ? 'bg-gray-200' : ''
+                    }`}
+                  >
+                    <FiAlignCenter />
+                  </button>
+                  <button
+                    onClick={() => editor.chain().focus().setTextAlign('right').run()}
+                    className={`p-2 rounded hover:bg-gray-200 ${
+                      editor.isActive({ textAlign: 'right' }) ? 'bg-gray-200' : ''
+                    }`}
+                  >
+                    <FiAlignRight />
+                  </button>
+                  <div className="w-px h-6 bg-gray-300 mx-1"></div>
+                  <button
+                    onClick={setLink}
+                    className={`p-2 rounded hover:bg-gray-200 ${
+                      editor.isActive('link') ? 'bg-gray-200' : ''
+                    }`}
+                  >
+                    <FiLink />
+                  </button>
+                  <button
+                    onClick={addImage}
+                    className="p-2 rounded hover:bg-gray-200"
+                    disabled={imageUploading}
+                  >
+                    <FiImage />
+                  </button>
+                </div>
+              </div>
+
+              {/* Editor Content */}
+              <div className="p-6">
+                <EditorContent editor={editor} />
+              </div>
+            </div>
+
+            {/* Word Count */}
+            <div className="mt-4 text-sm text-gray-600">
+              {editor.getText().split(/\s+/).filter(Boolean).length} words • 
+              {' '}{calculateReadTime(editor.getText())} min read
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-export default MyProFroalaEditor;
+export default BlogEditor;
