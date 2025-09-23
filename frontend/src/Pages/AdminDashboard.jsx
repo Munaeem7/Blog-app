@@ -1,89 +1,163 @@
-import React, { useState } from 'react';
-import BlogEditor from '../components/Admin/BlogEditor';
-import { 
-  FiMenu, 
-  FiX, 
-  FiHome, 
-  FiFileText, 
-  FiSettings, 
+import React, { useState, useEffect } from "react";
+import BlogEditor from "../components/Admin/BlogEditor";
+import { FiTag } from "react-icons/fi";
+import CategoryManager from "../components/Admin/CategoryManager";
+import {
+  FiMenu,
+  FiX,
+  FiHome,
+  FiFileText,
+  FiSettings,
   FiUsers,
   FiBarChart,
   FiLogOut,
-  FiPlusCircle
-} from 'react-icons/fi';
+  FiPlusCircle,
+  FiEdit,
+  FiTrash2,
+} from "react-icons/fi";
+import { postsAPI, categoriesAPI } from "../Api/Api.jsx";
 
 const AdminDashboard = () => {
-  const [activeSection, setActiveSection] = useState('editor');
+  const [activeSection, setActiveSection] = useState("editor");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [posts, setPosts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [showNewEditor, setShowNewEditor] = useState(true);
+  const [editingPost, setEditingPost] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState({
+    totalPosts: 0,
+    publishedPosts: 0,
+    draftPosts: 0,
+    totalViews: 0,
+    totalComments: 0,
+  });
 
-  // Mock data for dashboard stats
-  const dashboardStats = {
-    totalPosts: 24,
-    publishedPosts: 18,
-    draftPosts: 6,
-    totalViews: '12.4K',
-    totalComments: 156
+  // Mock current user (replace with actual auth)
+  const currentUser = {
+    id: 1,
+    username: "admin",
+    email: "admin@wealthymiles.com",
   };
 
-  const categories = ['Technology', 'Finance', 'Travel', 'Lifestyle', 'Business', 'Luxury'];
+useEffect(() => {
+  if (activeSection === 'dashboard' || activeSection === 'posts') {
+    fetchPosts();
+    fetchStats();
+  }
+  
+  if (activeSection === 'editor' || activeSection === 'categories') {
+    fetchCategories();
+  }
+}, [activeSection]);
+
+  const fetchPosts = async () => {
+    try {
+      setLoading(true);
+      const response = await postsAPI.getAll(1, 50); // Get first 50 posts
+      setPosts(response.data.data);
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await categoriesAPI.getAll();
+      setCategories(response.data.data);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      // This would be a custom endpoint you'd need to create
+      // For now, we'll calculate from posts data
+      const response = await postsAPI.getAll(1, 1000); // Get all posts for stats
+      const allPosts = response.data.data;
+
+      const totalPosts = allPosts.length;
+      const publishedPosts = allPosts.filter((post) => post.published).length;
+      const draftPosts = totalPosts - publishedPosts;
+      const totalViews = allPosts.reduce(
+        (sum, post) => sum + (post.views || 0),
+        0
+      );
+
+      setStats({
+        totalPosts,
+        publishedPosts,
+        draftPosts,
+        totalViews,
+        totalComments: 0, // You'd need to fetch comments separately
+      });
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    }
+  };
 
   const handleSavePost = async (postData) => {
     try {
-      console.log('Saving post:', postData);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Add to posts list
-      const newPost = {
-        ...postData,
-        id: Date.now(),
-        createdAt: new Date().toISOString(),
-        author: 'Admin User'
-      };
-      
-      setPosts(prev => [newPost, ...prev]);
+      // The actual save happens in the BlogEditor component
+      // This function just updates the UI after success
+      await fetchPosts();
       setShowNewEditor(false);
-      
-      return { success: true, post: newPost };
+      setEditingPost(null);
+
+      return { success: true };
     } catch (error) {
-      console.error('Error saving post:', error);
+      console.error("Error handling post save:", error);
       return { success: false, error: error.message };
     }
   };
 
   const handlePublishPost = async (postData) => {
     try {
-      console.log('Publishing post:', postData);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const publishedPost = {
-        ...postData,
-        id: Date.now(),
-        createdAt: new Date().toISOString(),
-        publishedAt: new Date().toISOString(),
-        author: 'Admin User',
-        status: 'published'
-      };
-      
-      setPosts(prev => [publishedPost, ...prev]);
+      await fetchPosts();
       setShowNewEditor(false);
-      
-      return { success: true, post: publishedPost };
+      setEditingPost(null);
+
+      return { success: true };
     } catch (error) {
-      console.error('Error publishing post:', error);
+      console.error("Error handling post publish:", error);
       return { success: false, error: error.message };
     }
   };
 
+  const handleEditPost = (post) => {
+    setEditingPost(post);
+    setShowNewEditor(true);
+    setActiveSection("editor");
+  };
+
+  const handleDeletePost = async (postId) => {
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
+
+    try {
+      await postsAPI.delete(postId);
+      await fetchPosts();
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      alert("Failed to delete post");
+    }
+  };
+
+  const handleNewPost = () => {
+    setEditingPost(null);
+    setShowNewEditor(true);
+  };
+
   const renderContent = () => {
     switch (activeSection) {
-      case 'dashboard':
+      case "dashboard":
         return (
           <div className="p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Dashboard Overview</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              Dashboard Overview
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
                 <div className="flex items-center">
@@ -92,7 +166,9 @@ const AdminDashboard = () => {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm text-gray-600">Total Posts</p>
-                    <p className="text-2xl font-bold text-gray-900">{dashboardStats.totalPosts}</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {stats.totalPosts}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -103,7 +179,9 @@ const AdminDashboard = () => {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm text-gray-600">Published</p>
-                    <p className="text-2xl font-bold text-gray-900">{dashboardStats.publishedPosts}</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {stats.publishedPosts}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -114,7 +192,9 @@ const AdminDashboard = () => {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm text-gray-600">Drafts</p>
-                    <p className="text-2xl font-bold text-gray-900">{dashboardStats.draftPosts}</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {stats.draftPosts}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -125,7 +205,9 @@ const AdminDashboard = () => {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm text-gray-600">Total Views</p>
-                    <p className="text-2xl font-bold text-gray-900">{dashboardStats.totalViews}</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {stats.totalViews}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -133,46 +215,66 @@ const AdminDashboard = () => {
 
             {/* Recent Posts */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Posts</h3>
-              <div className="space-y-3">
-                {posts.slice(0, 5).map((post) => (
-                  <div key={post.id} className="flex items-center justify-between p-3 border border-gray-100 rounded-lg">
-                    <div>
-                      <h4 className="font-medium text-gray-900">{post.title}</h4>
-                      <p className="text-sm text-gray-600">
-                        {new Date(post.createdAt).toLocaleDateString()} • 
-                        <span className={`ml-2 px-2 py-1 rounded-full text-xs ${
-                          post.status === 'published' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {post.status}
-                        </span>
-                      </p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Recent Posts
+              </h3>
+              {loading ? (
+                <p className="text-gray-500 text-center py-8">
+                  Loading posts...
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {posts.slice(0, 5).map((post) => (
+                    <div
+                      key={post.id}
+                      className="flex items-center justify-between p-3 border border-gray-100 rounded-lg"
+                    >
+                      <div>
+                        <h4 className="font-medium text-gray-900">
+                          {post.title}
+                        </h4>
+                        <p className="text-sm text-gray-600">
+                          {new Date(post.created_at).toLocaleDateString()} •
+                          <span
+                            className={`ml-2 px-2 py-1 rounded-full text-xs ${
+                              post.published
+                                ? "bg-green-100 text-green-800"
+                                : "bg-yellow-100 text-yellow-800"
+                            }`}
+                          >
+                            {post.published ? "Published" : "Draft"}
+                          </span>
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleEditPost(post)}
+                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                      >
+                        Edit
+                      </button>
                     </div>
-                    <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                      Edit
-                    </button>
-                  </div>
-                ))}
-                {posts.length === 0 && (
-                  <p className="text-gray-500 text-center py-8">No posts yet. Create your first post!</p>
-                )}
-              </div>
+                  ))}
+                  {posts.length === 0 && (
+                    <p className="text-gray-500 text-center py-8">
+                      No posts yet. Create your first post!
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         );
 
-      case 'editor':
+      case "editor":
         return (
           <div className="p-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-gray-900">
-                {showNewEditor ? 'Create New Post' : 'Edit Post'}
+                {editingPost ? "Edit Post" : "Create New Post"}
               </h2>
               {!showNewEditor && (
                 <button
-                  onClick={() => setShowNewEditor(true)}
+                  onClick={handleNewPost}
                   className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"
                 >
                   <FiPlusCircle className="mr-2" />
@@ -185,85 +287,119 @@ const AdminDashboard = () => {
                 onSave={handleSavePost}
                 onPublish={handlePublishPost}
                 categories={categories}
+                initialData={editingPost}
+                currentUser={currentUser}
               />
             )}
           </div>
         );
 
-      case 'posts':
+      case "posts":
         return (
           <div className="p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Manage Posts</h2>
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Title
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Category
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {posts.map((post) => (
-                    <tr key={post.id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{post.title}</div>
-                        <div className="text-sm text-gray-500">{post.excerpt}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                          {post.category}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          post.status === 'published' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {post.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(post.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button className="text-blue-600 hover:text-blue-900 mr-3">Edit</button>
-                        <button className="text-red-600 hover:text-red-900">Delete</button>
-                      </td>
-                    </tr>
-                  ))}
-                  {posts.length === 0 && (
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              Manage Posts
+            </h2>
+            {loading ? (
+              <p className="text-gray-500 text-center py-8">Loading posts...</p>
+            ) : (
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
                     <tr>
-                      <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
-                        No posts found. Create your first post!
-                      </td>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Title
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Category
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Date
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {posts.map((post) => (
+                      <tr key={post.id}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">
+                            {post.title}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {post.excerpt}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                            {post.category_name || "Uncategorized"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`px-2 py-1 text-xs font-medium rounded-full ${
+                              post.published
+                                ? "bg-green-100 text-green-800"
+                                : "bg-yellow-100 text-yellow-800"
+                            }`}
+                          >
+                            {post.published ? "Published" : "Draft"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {new Date(post.created_at).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <button
+                            onClick={() => handleEditPost(post)}
+                            className="text-blue-600 hover:text-blue-900 mr-3"
+                          >
+                            <FiEdit className="inline mr-1" /> Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeletePost(post.id)}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            <FiTrash2 className="inline mr-1" /> Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {posts.length === 0 && (
+                      <tr>
+                        <td
+                          colSpan="5"
+                          className="px-6 py-8 text-center text-gray-500"
+                        >
+                          No posts found. Create your first post!
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         );
-
-      case 'settings':
+      case "categories":
+        return (
+          <div className="p-6">
+            <CategoryManager />
+          </div>
+        );
+      case "settings":
         return (
           <div className="p-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Settings</h2>
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Blog Settings</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Blog Settings
+              </h3>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -301,34 +437,40 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
-      <div className={`
+      <div
+        className={`
         fixed lg:static inset-y-0 left-0 z-50 w-64 bg-gray-900 text-white transform transition-transform duration-300 ease-in-out
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-      `}>
+        ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+      `}
+      >
         <div className="p-6">
           <h1 className="text-2xl font-bold flex items-center">
-            <span className="bg-white text-gray-900 rounded-md w-8 h-8 flex items-center justify-center mr-3">WM</span>
+            <span className="bg-white text-gray-900 rounded-md w-8 h-8 flex items-center justify-center mr-3">
+              WM
+            </span>
             Admin Panel
           </h1>
         </div>
         <nav className="mt-8">
           {[
-            { id: 'dashboard', label: 'Dashboard', icon: FiHome },
-            { id: 'editor', label: 'Editor', icon: FiFileText },
-            { id: 'posts', label: 'All Posts', icon: FiFileText },
-            { id: 'settings', label: 'Settings', icon: FiSettings },
+            { id: "dashboard", label: "Dashboard", icon: FiHome },
+            { id: "editor", label: "Editor", icon: FiFileText },
+            { id: "posts", label: "All Posts", icon: FiFileText },
+            { id: "categories", label: "Categories", icon: FiTag },
+            { id: "settings", label: "Settings", icon: FiSettings },
           ].map((item) => (
             <button
               key={item.id}
               onClick={() => {
                 setActiveSection(item.id);
                 setSidebarOpen(false);
-                if (item.id === 'editor') setShowNewEditor(true);
+                if (item.id === "editor") handleNewPost();
+                if (item.id === 'categories') fetchCategories();
               }}
               className={`w-full flex items-center px-6 py-3 text-left transition-colors ${
                 activeSection === item.id
-                  ? 'bg-gray-800 text-white'
-                  : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                  ? "bg-gray-800 text-white"
+                  : "text-gray-300 hover:bg-gray-800 hover:text-white"
               }`}
             >
               <item.icon className="mr-3" />
@@ -357,10 +499,10 @@ const AdminDashboard = () => {
                 {sidebarOpen ? <FiX size={24} /> : <FiMenu size={24} />}
               </button>
               <h1 className="text-xl font-semibold text-gray-900">
-                {activeSection === 'dashboard' && 'Dashboard'}
-                {activeSection === 'editor' && 'Post Editor'}
-                {activeSection === 'posts' && 'Manage Posts'}
-                {activeSection === 'settings' && 'Settings'}
+                {activeSection === "dashboard" && "Dashboard"}
+                {activeSection === "editor" && "Post Editor"}
+                {activeSection === "posts" && "Manage Posts"}
+                {activeSection === "settings" && "Settings"}
               </h1>
             </div>
             <div className="flex items-center">
@@ -372,9 +514,7 @@ const AdminDashboard = () => {
         </header>
 
         {/* Content */}
-        <main className="flex-1 overflow-y-auto">
-          {renderContent()}
-        </main>
+        <main className="flex-1 overflow-y-auto">{renderContent()}</main>
       </div>
 
       {/* Overlay for mobile */}

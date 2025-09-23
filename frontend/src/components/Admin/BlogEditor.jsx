@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
@@ -17,26 +17,37 @@ import {
   FiImage,
   FiSave,
   FiGlobe,
-  FiType,
-  FiClock
+  FiClock,
+  FiAlertCircle,
+  FiX
 } from 'react-icons/fi';
+import { postsAPI } from '../../Api/Api';
 
-const BlogEditor = ({ onSave, onPublish, initialData, categories }) => {
+const BlogEditor = ({ onSave, onPublish, initialData, categories, currentUser }) => {
   const [title, setTitle] = useState(initialData?.title || '');
+  const [slug, setSlug] = useState(initialData?.slug || '');
   const [excerpt, setExcerpt] = useState(initialData?.excerpt || '');
-  const [selectedCategory, setSelectedCategory] = useState(initialData?.category || '');
-  const [featuredImage, setFeaturedImage] = useState(initialData?.featuredImage || '');
-  const [status, setStatus] = useState(initialData?.status || 'draft');
+  const [category, setCategory] = useState(initialData?.category || '');
+  const [coverImage, setCoverImage] = useState(initialData?.cover_image || '');
   const [loading, setLoading] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Image,
+      Image.configure({
+        HTMLAttributes: {
+          class: 'blog-image',
+        },
+      }),
       Underline,
       Link.configure({
         openOnClick: false,
+        HTMLAttributes: {
+          class: 'blog-link',
+        },
       }),
       TextAlign.configure({
         types: ['heading', 'paragraph'],
@@ -48,7 +59,75 @@ const BlogEditor = ({ onSave, onPublish, initialData, categories }) => {
         class: 'prose prose-lg max-w-none focus:outline-none min-h-300 p-4',
       },
     },
+    onUpdate: () => {
+      // Auto-generate slug from title if empty
+      if (!slug && title) {
+        const generatedSlug = generateSlug(title);
+        setSlug(generatedSlug);
+      }
+    },
   });
+
+  const generateSlug = (text) => {
+    return text
+      .toLowerCase()
+      .replace(/[^a-z0-9 -]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+  };
+
+  useEffect(() => {
+    if (initialData?.id) {
+      fetchPostData(initialData.id);
+    }
+  }, [initialData?.id]);
+
+  const fetchPostData = async (postId) => {
+    try {
+      const response = await postsAPI.getOne(postId);
+      const post = response.data.data;
+      
+      setTitle(post.title);
+      setSlug(post.slug || '');
+      setExcerpt(post.excerpt || '');
+      setCategory(post.category || '');
+      setCoverImage(post.cover_image || '');
+      
+      if (editor) {
+        editor.commands.setContent(post.content);
+      }
+    } catch (err) {
+      console.error('Error fetching post:', err);
+      setError('Failed to load post data');
+    }
+  };
+
+  const uploadToCloudinary = async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
+      
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/upload`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
+      
+      if (!response.ok) {
+        throw new Error('Cloudinary upload failed');
+      }
+      
+      const data = await response.json();
+      return data.secure_url;
+    } catch (error) {
+      console.error('Cloudinary upload error:', error);
+      throw new Error('Failed to upload image to Cloudinary');
+    }
+  };
 
   const addImage = useCallback(async () => {
     const input = document.createElement('input');
@@ -61,7 +140,6 @@ const BlogEditor = ({ onSave, onPublish, initialData, categories }) => {
 
       try {
         setImageUploading(true);
-        // Replace with your actual upload function
         const imageUrl = await uploadToCloudinary(file);
         
         if (editor && imageUrl) {
@@ -69,6 +147,7 @@ const BlogEditor = ({ onSave, onPublish, initialData, categories }) => {
         }
       } catch (error) {
         console.error('Image upload failed:', error);
+        setError('Image upload failed');
       } finally {
         setImageUploading(false);
       }
@@ -92,41 +171,54 @@ const BlogEditor = ({ onSave, onPublish, initialData, categories }) => {
     editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
   }, [editor]);
 
-  const handleSave = async (publishStatus = 'draft') => {
-    if (!editor || !title) return;
+  const handleSave = async () => {
+    if (!editor || !title) {
+      setError('Title and content are required');
+      return;
+    }
+
+    if (!slug) {
+      setError('Slug is required');
+      return;
+    }
 
     setLoading(true);
+    setError('');
+    setSuccess('');
+
     try {
       const postData = {
         title,
+        slug,
         content: editor.getHTML(),
         excerpt,
-        category: selectedCategory,
-        featuredImage,
-        status: publishStatus,
-        slug: generateSlug(title),
-        readTime: calculateReadTime(editor.getText())
+        category,
+        cover_image: coverImage,
+        user_id: currentUser.id,
+        read_time: calculateReadTime(editor.getText()) + ' min',
       };
 
-      if (publishStatus === 'published') {
-        await onPublish(postData);
+      let response;
+      
+      if (initialData?.id) {
+        // Update existing post
+        response = await postsAPI.update(initialData.id, postData);
+        if (onSave) onSave(response.data.data);
+        setSuccess('Post updated successfully');
       } else {
-        await onSave(postData);
+        // Create new post
+        response = await postsAPI.create(postData);
+        if (onSave) onSave(response.data.data);
+        setSuccess('Post created successfully');
       }
+
+      if (onPublish) onPublish(response.data.data);
     } catch (error) {
       console.error('Error saving post:', error);
+      setError(error.response?.data?.message || 'Failed to save post');
     } finally {
       setLoading(false);
     }
-  };
-
-  const generateSlug = (title) => {
-    return title
-      .toLowerCase()
-      .replace(/[^a-z0-9 -]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim();
   };
 
   const calculateReadTime = (text) => {
@@ -135,35 +227,52 @@ const BlogEditor = ({ onSave, onPublish, initialData, categories }) => {
     return Math.ceil(words / wordsPerMinute);
   };
 
-  const uploadToCloudinary = async (file) => {
-    // Implement your Cloudinary upload logic here
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
+  const handleCoverImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/upload`,
-      {
-        method: 'POST',
-        body: formData,
-      }
-    );
+    try {
+      setImageUploading(true);
+      const url = await uploadToCloudinary(file);
+      setCoverImage(url);
+    } catch (error) {
+      console.error('Upload failed:', error);
+      setError('Cover image upload failed');
+    } finally {
+      setImageUploading(false);
+    }
+  };
 
-    const data = await response.json();
-    return data.secure_url;
+  const removeCoverImage = () => {
+    setCoverImage('');
   };
 
   if (!editor) {
-    return null;
+    return <div className="flex justify-center items-center h-64">Loading editor...</div>;
   }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Status messages */}
+        {error && (
+          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded flex items-center">
+            <FiAlertCircle className="mr-2" />
+            {error}
+          </div>
+        )}
+        
+        {success && (
+          <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded flex items-center">
+            <FiAlertCircle className="mr-2" />
+            {success}
+          </div>
+        )}
+
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
-            {initialData ? 'Edit Post' : 'Create New Post'}
+            {initialData?.id ? 'Edit Post' : 'Create New Post'}
           </h1>
           <p className="text-gray-600 mt-2">
             Craft engaging content for your audience
@@ -173,16 +282,24 @@ const BlogEditor = ({ onSave, onPublish, initialData, categories }) => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Sidebar */}
           <div className="lg:col-span-1 space-y-6">
-            {/* Featured Image */}
+            {/* Cover Image */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Featured Image</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Cover Image</h3>
               <div className="flex flex-col items-center">
-                {featuredImage ? (
-                  <img
-                    src={featuredImage}
-                    alt="Featured"
-                    className="w-full h-48 object-cover rounded-lg mb-3"
-                  />
+                {coverImage ? (
+                  <div className="relative w-full mb-3">
+                    <img
+                      src={coverImage}
+                      alt="Cover"
+                      className="w-full h-48 object-cover rounded-lg"
+                    />
+                    <button
+                      onClick={removeCoverImage}
+                      className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+                    >
+                      <FiX size={16} />
+                    </button>
+                  </div>
                 ) : (
                   <div className="w-full h-48 bg-gray-100 rounded-lg flex items-center justify-center mb-3">
                     <span className="text-gray-400">No image selected</span>
@@ -191,26 +308,14 @@ const BlogEditor = ({ onSave, onPublish, initialData, categories }) => {
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={async (e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                      setImageUploading(true);
-                      try {
-                        const url = await uploadToCloudinary(file);
-                        setFeaturedImage(url);
-                      } catch (error) {
-                        console.error('Upload failed:', error);
-                      } finally {
-                        setImageUploading(false);
-                      }
-                    }
-                  }}
+                  onChange={handleCoverImageUpload}
                   className="hidden"
-                  id="featured-image-upload"
+                  id="cover-image-upload"
                 />
                 <label
-                  htmlFor="featured-image-upload"
-                  className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+                  htmlFor="cover-image-upload"
+                  className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  disabled={imageUploading}
                 >
                   {imageUploading ? 'Uploading...' : 'Upload Image'}
                 </label>
@@ -221,37 +326,39 @@ const BlogEditor = ({ onSave, onPublish, initialData, categories }) => {
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Post Settings</h3>
               
+              {/* Slug */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Slug
+                </label>
+                <input
+                  type="text"
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value)}
+                  placeholder="post-url-slug"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  This will be used in the URL for your post
+                </p>
+              </div>
+
               {/* Category */}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Category
                 </label>
                 <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select a category</option>
                   {categories.map((cat) => (
-                    <option key={cat} value={cat.toLowerCase()}>
-                      {cat}
+                    <option key={cat.id} value={cat.name}>
+                      {cat.name}
                     </option>
                   ))}
-                </select>
-              </div>
-
-              {/* Status */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Status
-                </label>
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="draft">Draft</option>
-                  <option value="published">Published</option>
                 </select>
               </div>
 
@@ -271,20 +378,12 @@ const BlogEditor = ({ onSave, onPublish, initialData, categories }) => {
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="space-y-3">
                 <button
-                  onClick={() => handleSave('draft')}
-                  disabled={loading || !title}
-                  className="w-full bg-gray-600 text-white px-4 py-2 rounded-md font-medium hover:bg-gray-700 disabled:opacity-50 transition-colors flex items-center justify-center"
-                >
-                  <FiSave className="mr-2" />
-                  {loading ? 'Saving...' : 'Save Draft'}
-                </button>
-                <button
-                  onClick={() => handleSave('published')}
-                  disabled={loading || !title}
+                  onClick={handleSave}
+                  disabled={loading || !title || !slug}
                   className="w-full bg-green-600 text-white px-4 py-2 rounded-md font-medium hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center justify-center"
                 >
                   <FiGlobe className="mr-2" />
-                  {loading ? 'Publishing...' : 'Publish Post'}
+                  {loading ? 'Publishing...' : initialData?.id ? 'Update Post' : 'Publish Post'}
                 </button>
               </div>
             </div>
@@ -299,15 +398,22 @@ const BlogEditor = ({ onSave, onPublish, initialData, categories }) => {
                   type="text"
                   placeholder="Enter post title..."
                   value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  onChange={(e) => {
+                    setTitle(e.target.value);
+                    // Auto-generate slug when title changes
+                    if (!slug) {
+                      const newSlug = generateSlug(e.target.value);
+                      setSlug(newSlug);
+                    }
+                  }}
                   className="w-full text-3xl font-bold text-gray-900 placeholder-gray-400 border-none outline-none focus:ring-0"
                 />
-                <input
-                  type="text"
+                <textarea
                   placeholder="Brief excerpt..."
                   value={excerpt}
                   onChange={(e) => setExcerpt(e.target.value)}
-                  className="w-full mt-2 text-gray-600 placeholder-gray-400 border-none outline-none focus:ring-0"
+                  className="w-full mt-2 text-gray-600 placeholder-gray-400 border-none outline-none focus:ring-0 resize-none"
+                  rows="2"
                 />
               </div>
 
@@ -392,7 +498,7 @@ const BlogEditor = ({ onSave, onPublish, initialData, categories }) => {
               </div>
 
               {/* Editor Content */}
-              <div className="p-6">
+              <div className="p-6 min-h-96">
                 <EditorContent editor={editor} />
               </div>
             </div>
@@ -405,6 +511,28 @@ const BlogEditor = ({ onSave, onPublish, initialData, categories }) => {
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        .blog-image {
+          max-width: 100%;
+          height: auto;
+          border-radius: 8px;
+          margin: 1rem 0;
+        }
+        
+        .blog-link {
+          color: #3b82f6;
+          text-decoration: underline;
+        }
+        
+        .ProseMirror:focus {
+          outline: none;
+        }
+        
+        .min-h-300 {
+          min-height: 300px;
+        }
+      `}</style>
     </div>
   );
 };
