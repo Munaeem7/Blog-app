@@ -3,10 +3,10 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar/Navbar";
 import Footer from "../components/Navbar/Footer/Footer";
 import axios from "axios";
-import { allPosts } from "../Data/posts.js";
+import { postsAPI } from "../Api/Api";
 
 const BlogPost = () => {
-  const { categorySlug, postSlug } = useParams(); // Changed from slug to categorySlug and postSlug
+  const { categorySlug, postSlug } = useParams();
   const navigate = useNavigate();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -14,43 +14,49 @@ const BlogPost = () => {
 
   // Mock data - replace with API calls
   useEffect(() => {
-  const fetchPostData = async () => {
-    try {
-      setLoading(true);
-      
-      // Use the shared data instead of local mock data
-      const foundPost = allPosts.find(
-        (p) =>
-          p.category.toLowerCase() === categorySlug.toLowerCase() &&
-          p.slug === postSlug
-      );
+    const fetchPostData = async () => {
+      try {
+        setLoading(true);
 
-      if (!foundPost) {
+        const { data } = await postsAPI.getAll(1, 50);
+
+        if (!data.success) {
+          throw new Error("Failed to fetch posts");
+        }
+
+         const allPosts = data.data;
+        const foundPost = allPosts.find(
+          (p) =>
+            p.category.toLowerCase() === categorySlug.toLowerCase() &&
+            p.slug === postSlug
+        );
+
+        if (!foundPost) {
+          navigate("/", { replace: true });
+          return;
+        }
+
+        setPost(foundPost);
+
+        setRelatedPosts(
+          allPosts
+            .filter(
+              (p) =>
+                p.category.toLowerCase() === categorySlug.toLowerCase() &&
+                p.slug !== postSlug
+            )
+            .slice(0, 3)
+        );
+      } catch (error) {
+        console.error("Error fetching post data:", error);
         navigate("/", { replace: true });
-        return;
+      } finally {
+        setLoading(false);
       }
+    };
 
-      setPost(foundPost);
-      
-      setRelatedPosts(
-        allPosts
-          .filter(
-            (p) =>
-              p.category.toLowerCase() === categorySlug.toLowerCase() &&
-              p.slug !== postSlug
-          )
-          .slice(0, 3)
-      );
-    } catch (error) {
-      console.error("Error fetching post data:", error);
-      navigate("/", { replace: true });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchPostData();
-}, [categorySlug, postSlug, navigate]);
+    fetchPostData();
+  }, [categorySlug, postSlug, navigate]);
 
   const formatDate = (dateString) => {
     const options = { year: "numeric", month: "long", day: "numeric" };

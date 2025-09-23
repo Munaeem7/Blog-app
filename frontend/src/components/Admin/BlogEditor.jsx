@@ -185,7 +185,7 @@ const BlogEditor = ({ onSave, onPublish, initialData, categories, currentUser })
     setLoading(true);
     setError('');
     setSuccess('');
-
+    console.log(editor.getHTML())
     try {
       const postData = {
         title,
@@ -194,7 +194,6 @@ const BlogEditor = ({ onSave, onPublish, initialData, categories, currentUser })
         excerpt,
         category,
         cover_image: coverImage,
-        user_id: currentUser.id,
         read_time: calculateReadTime(editor.getText()) + ' min',
       };
 

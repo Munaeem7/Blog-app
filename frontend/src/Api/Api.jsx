@@ -34,11 +34,11 @@ export const api = axios.create({
 
 // API methods
 export const postsAPI = {
-  getAll: (page = 1, limit = 10) => api.get(`/allposts?page=${page}&limit=${limit}`),
-  getOne: (id) => api.get(`/post/${id}`),
+  getAll: (page = 1, limit = 10) => api.get(`/api/v1/allposts?page=${page}&limit=${limit}`),
+  getOne: (id) => api.get(`/api/v1/post/${id}`),
   create: (postData) => api.post('/api/v1/post', postData),
-  update: (id, postData) => api.put(`/post/${id}`, postData),
-  delete: (id) => api.delete(`/post/${id}`),
+  update: (id, postData) => api.put(`/api/v1/post/${id}`, postData),
+  delete: (id) => api.delete(`/api/v1/post/${id}`),
 };
 
 export const categoriesAPI = {

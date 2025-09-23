@@ -2,7 +2,14 @@ import { query } from "../utils/db.js"
 
 export const getAllCategories = async (req, res) => {
   try {
-    const result = await query('SELECT * FROM categories ORDER BY name')
+    const result = await query(`
+      SELECT c.*, COUNT(p.id) AS post_count
+      FROM categories c
+      LEFT JOIN posts p ON c.id = p.category_id
+      GROUP BY c.id
+      ORDER BY c.name
+    `)
+
     res.status(200).json({
       success: true,
       data: result.rows
@@ -16,10 +23,17 @@ export const getAllCategories = async (req, res) => {
   }
 }
 
+
 export const getCategory = async (req, res) => {
   try {
     const { id } = req.params
-    const result = await query('SELECT * FROM categories WHERE id = $1', [id])
+    const result = await query(`
+      SELECT c.*, COUNT(p.id) AS post_count
+      FROM categories c
+      LEFT JOIN posts p ON c.id = p.category_id
+      WHERE c.id = $1
+      GROUP BY c.id
+    `, [id])
     
     if (result.rows.length === 0) {
       return res.status(404).json({
@@ -40,6 +54,7 @@ export const getCategory = async (req, res) => {
     })
   }
 }
+
 
 export const createCategory = async (req, res) => {
   try {

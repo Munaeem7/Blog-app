@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import Navbar from "../components/Navbar/Navbar";
 import Footer from "../components/Navbar/Footer/Footer";
 import BlogCard from "../components/blog/BlogCard"; 
-import { allPosts } from '../Data/posts';
+import { categoriesAPI } from "../Api/Api";
 
 const CategoryPage = () => {
   const { categorySlug } = useParams(); 
@@ -13,37 +13,84 @@ const CategoryPage = () => {
     imageUrl: "",
   });
   const [posts, setPosts] = useState([]);
+  const [allCategories, setAllCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Mock data - replace with API calls
   useEffect(() => {
-  const fetchCategoryData = async () => {
-    try {
-      setLoading(true);
-      
-      // Mock category data
-      const categoryData = {
-        name: categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1),
-        description: `Explore our latest articles and insights about ${categorySlug}. Stay updated with the most relevant content in this category.`,
-        imageUrl: "/img1.webp",
-      };
-      
-      // Use shared data
-      const filteredPosts = allPosts.filter(post => 
-        post.category.toLowerCase() === categorySlug.toLowerCase()
-      );
+    const fetchCategoryData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch categories from API
+        const categoriesResponse = await categoriesAPI.getAll();
+        
+        // Handle different response structures
+        let categoriesData = [];
+        
+        if (Array.isArray(categoriesResponse.data)) {
+          // If response.data is directly an array (your case)
+          categoriesData = categoriesResponse.data;
+        } else if (categoriesResponse.data && Array.isArray(categoriesResponse.data.categories)) {
+          // If response.data has a categories property
+          categoriesData = categoriesResponse.data.categories;
+        } else if (categoriesResponse.data && Array.isArray(categoriesResponse.data.data)) {
+          // If response.data has a data property
+          categoriesData = categoriesResponse.data.data;
+        }
+        
+        console.log("Categories data:", categoriesData);
+        setAllCategories(categoriesData || []);
 
-      setCategory(categoryData);
-      setPosts(filteredPosts);
-    } catch (error) {
-      console.error("Error fetching category data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+        // Find the current category by slug
+        const currentCategory = categoriesData.find(cat => 
+          cat.slug?.toLowerCase() === categorySlug?.toLowerCase() || 
+          cat.name?.toLowerCase() === categorySlug?.toLowerCase()
+        );
 
-  fetchCategoryData();
-}, [categorySlug]);
+        if (currentCategory) {
+          setCategory({
+            name: currentCategory.name,
+            description: currentCategory.description || `Explore our latest articles and insights about ${currentCategory.name}. Stay updated with the most relevant content in this category.`,
+            imageUrl: currentCategory.imageUrl || "/img1.webp",
+          });
+        } else {
+          // Fallback if category not found
+          const fallbackName = categorySlug ? 
+            categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1) : 
+            "Category";
+          
+          setCategory({
+            name: fallbackName,
+            description: `Explore our latest articles and insights about ${fallbackName}. Stay updated with the most relevant content in this category.`,
+            imageUrl: "/img1.webp",
+          });
+        }
+
+        // For posts, you would need to fetch them from your posts API
+        // This is a placeholder - replace with actual posts API call
+        const filteredPosts = []; // Replace with actual posts filtering logic
+        
+        setPosts(filteredPosts);
+      } catch (error) {
+        console.error("Error fetching category data:", error);
+        // Fallback data in case of error
+        const fallbackName = categorySlug ? 
+          categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1) : 
+          "Category";
+        
+        setCategory({
+          name: fallbackName,
+          description: `Explore our latest articles and insights about ${fallbackName}. Stay updated with the most relevant content in this category.`,
+          imageUrl: "/img1.webp",
+        });
+        setAllCategories([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategoryData();
+  }, [categorySlug]);
 
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
@@ -144,18 +191,19 @@ const CategoryPage = () => {
               <div className="bg-gray-50 p-6 rounded-lg border border-gray-100">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Explore Categories</h2>
                 <div className="space-y-2">
-                  {['Technology', 'Finance', 'Travel', 'Luxury', 'Lifestyle'].map(cat => (
+                  {Array.isArray(allCategories) && allCategories.map(cat => (
                     <Link
-                      key={cat}
-                      to={`/category/${cat.toLowerCase()}`} 
+                      key={cat.id}
+                      to={`/category/${cat.slug || cat.name.toLowerCase()}`} 
                       onClick={() => window.scrollTo(0, 0)}
                       className={`block py-2 px-3 rounded-md transition-colors ${
-                        cat.toLowerCase() === categorySlug.toLowerCase() 
+                        (cat.slug?.toLowerCase() === categorySlug?.toLowerCase() || 
+                         cat.name?.toLowerCase() === categorySlug?.toLowerCase()) 
                           ? 'bg-gray-200 text-gray-900 font-medium' 
                           : 'text-gray-700 hover:bg-gray-100'
                       }`}
                     >
-                      {cat}
+                      {cat.name}
                     </Link>
                   ))}
                 </div>

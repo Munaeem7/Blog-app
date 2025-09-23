@@ -16,11 +16,11 @@ export const allPost = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
     
-    // Get posts with author information
+    // Get posts with category information only (no user data)
     const posts = await query(`
-      SELECT p.*, u.username as author_name
+      SELECT p.*, c.name as category_name
       FROM posts p 
-      LEFT JOIN users u ON p.user_id = u.id 
+      LEFT JOIN categories c ON p.category_id = c.id 
       ORDER BY p.created_at DESC 
       LIMIT $1 OFFSET $2
     `, [limit, offset]);
@@ -53,13 +53,14 @@ export const allPost = async (req, res) => {
 
 export const createAPost = async (req, res) => {
   try {
-    const { title, slug, content, excerpt, category, user_id, cover_image, read_time } = req.body;
+    const { title, slug, content, excerpt, category, cover_image, read_time } = req.body;
+    console.log(req.body)
     
     // Validation
-    if (!title || !content || !user_id || !slug) {
+    if (!title || !content || !slug) {
       return res.status(400).json({
         success: false,
-        message: 'Title, content, user ID, and slug are required'
+        message: 'Title, content, and slug are required'
       });
     }
     
@@ -72,12 +73,14 @@ export const createAPost = async (req, res) => {
       });
     }
     
+    const result_id = await query(`SELECT id from categories where name = $1`,[category])
+    const category_id= result_id.rows[0].id;
     const result = await query(`
       INSERT INTO posts 
-        (title, slug, content, excerpt, category, user_id, cover_image, read_time) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+        (title, slug, content, excerpt, category_id, cover_image, read_time) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7) 
       RETURNING *
-    `, [title, slug, content, excerpt, category, user_id, cover_image, read_time]);
+    `, [title, slug, content, excerpt,category_id, cover_image, read_time]);
     
     res.status(201).json({
       success: true,
@@ -97,10 +100,10 @@ export const getAspecificPost = async (req, res) => {
   try {
     const { id } = req.params;
     
-    const result = await query(`
-      SELECT p.*, u.username as author_name
+const result = await query(`
+      SELECT p.*, c.name as category_name
       FROM posts p 
-      LEFT JOIN users u ON p.user_id = u.id 
+      LEFT JOIN categories c ON p.category_id = c.id 
       WHERE p.id = $1
     `, [id]);
     
@@ -128,7 +131,7 @@ export const updatePost = async (req, res) => {
   try {
     const { id } = req.params;
     const { title, slug, content, excerpt, category, cover_image, read_time } = req.body;
-    
+    console.log(req.body)
     // Check if post exists
     const postCheck = await query('SELECT * FROM posts WHERE id = $1', [id]);
     if (postCheck.rows.length === 0) {
@@ -152,7 +155,9 @@ export const updatePost = async (req, res) => {
         });
       }
     }
-    
+
+    const cat_id = await query (`select id from categories where name = $1`,[category])
+    const category_id = cat_id.rows[0].id;
     const result = await query(`
       UPDATE posts 
       SET 
@@ -160,13 +165,13 @@ export const updatePost = async (req, res) => {
         slug = COALESCE($2, slug), 
         content = COALESCE($3, content), 
         excerpt = COALESCE($4, excerpt), 
-        category = COALESCE($5, category), 
+        category_id = COALESCE($5, category_id), 
         cover_image = COALESCE($6, cover_image), 
         read_time = COALESCE($7, read_time),
         updated_at = CURRENT_TIMESTAMP
       WHERE id = $8 
       RETURNING *
-    `, [title, slug, content, excerpt, category, cover_image, read_time, id]);
+    `, [title, slug, content, excerpt, category_id, cover_image, read_time, id]);
     
     res.status(200).json({
       success: true,

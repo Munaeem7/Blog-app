@@ -1,41 +1,89 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
+import { categoriesAPI } from "../../Api/Api";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Define only category items 
-  const categories = [
-   
-    "Finance",
-    "Travel",
-    "Business",
-    "Luxury",
-    "Lifestyle",
-    "Health",
-    "Education"
-  ];
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoading(true);
+        const response = await categoriesAPI.getAll();
+        
+        // Handle different possible response structures
+        let categoriesData = [];
+        
+        if (Array.isArray(response.data)) {
+          // If response.data is directly an array
+          categoriesData = response.data;
+        } else if (response.data && Array.isArray(response.data.categories)) {
+          // If response.data has a categories property that is an array
+          categoriesData = response.data.categories;
+        } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
+          // If response.data has a data property that is an array
+          categoriesData = response.data.data;
+        }
+        
+        console.log("Categories data:", categoriesData); // Debug log
+        setCategories(categoriesData || []);
+      } catch (error) {
+        console.error("Failed to load categories:", error);
+        setCategories([]); // Ensure it's always an array
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Function to close menu and scroll to top
+    fetchCategories();
+  }, []);
+
   const handleCategoryClick = () => {
     setIsMenuOpen(false);
     window.scrollTo(0, 0);
   };
 
+  if (loading) {
+    return (
+      <nav className="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
+        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+          <Link
+            to="/"
+            className="flex items-center text-3xl sm:text-2xl font-bold text-gray-900"
+          >
+            <span className="bg-gray-900 text-white rounded-md w-10 h-10 flex items-center justify-center mr-3">
+              WM
+            </span>
+            WealthyMiles
+          </Link>
+          <div className="text-gray-600">Loading...</div>
+        </div>
+      </nav>
+    );
+  }
+
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
       <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-        <Link to="/" className="flex items-center text-3xl sm:text-2xl font-bold text-gray-900">
-          <span className="bg-gray-900 text-white rounded-md w-10 h-10 flex items-center justify-center mr-3">WM</span>
+        {/* Logo */}
+        <Link
+          to="/"
+          className="flex items-center text-3xl sm:text-2xl font-bold text-gray-900"
+        >
+          <span className="bg-gray-900 text-white rounded-md w-10 h-10 flex items-center justify-center mr-3">
+            WM
+          </span>
           WealthyMiles
         </Link>
 
         {/* Desktop Menu */}
         <ul className="hidden lg:flex space-x-8 text-gray-600 font-medium text-lg">
-          {categories.map(cat => (
-            <li key={cat}>
+          {Array.isArray(categories) && categories.map((cat) => (
+            <li key={cat.id || cat._id}>
               <NavLink
-                to={`/category/${cat.toLowerCase()}`}
+                to={`/category/${cat.slug}`}
                 onClick={() => window.scrollTo(0, 0)}
                 className={({ isActive }) =>
                   isActive
@@ -43,12 +91,13 @@ const Navbar = () => {
                     : "hover:text-gray-900 transition-colors duration-200"
                 }
               >
-                {cat}
+                {cat.name}
               </NavLink>
             </li>
           ))}
         </ul>
 
+        {/* Subscribe Button */}
         <div className="hidden lg:flex items-center">
           <Link
             to="/subscribe"
@@ -59,7 +108,7 @@ const Navbar = () => {
           </Link>
         </div>
 
-        {/* Mobile Toggle - Improved accessibility */}
+        {/* Mobile Toggle */}
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           className="text-gray-700 p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 lg:hidden"
@@ -70,21 +119,25 @@ const Navbar = () => {
         </button>
       </div>
 
-      {/* Mobile Menu - Improved accessibility */}
-      <div 
-        className={`lg:hidden transition-all duration-300 ease-in-out ${isMenuOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0 overflow-hidden"}`}
+      {/* Mobile Menu */}
+      <div
+        className={`lg:hidden transition-all duration-300 ease-in-out ${
+          isMenuOpen
+            ? "max-h-screen opacity-100"
+            : "max-h-0 opacity-0 overflow-hidden"
+        }`}
         aria-hidden={!isMenuOpen}
       >
         <div className="px-4 pt-2 pb-4 bg-white border-t border-gray-100">
           <ul className="space-y-2 text-base font-medium text-gray-600">
-            {categories.map(cat => (
-              <li key={cat}>
+            {Array.isArray(categories) && categories.map((cat) => (
+              <li key={cat.id || cat._id}>
                 <Link
-                  to={`/category/${cat.toLowerCase()}`}
+                  to={`/category/${cat.slug}`}
                   onClick={handleCategoryClick}
                   className="block py-3 px-4 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors duration-200"
                 >
-                  {cat}
+                  {cat.name}
                 </Link>
               </li>
             ))}
