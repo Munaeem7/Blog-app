@@ -26,7 +26,7 @@ const BlogCard = ({ post }) => {
   const categorySlug = category.toLowerCase().replace(/\s+/g, '-');
 
   return (
-    <article className="group bg-white rounded-lg border border-gray-100 overflow-hidden transition-all duration-300 hover:bg-gray-50 hover:shadow-sm cursor-pointer h-full flex flex-col">
+    <article className="group bg-white rounded-lg group border border-gray-100 overflow-hidden transition-all duration-300 hover:bg-gray-50 hover:shadow-sm cursor-pointer h-full flex flex-col">
       {/* Image container  */}
       <Link to={`/category/${categorySlug}/${slug}`} className="block flex-shrink-0 relative">
         <div className="aspect-video bg-gray-100 overflow-hidden">
@@ -37,8 +37,8 @@ const BlogCard = ({ post }) => {
             loading="lazy"
           />
         </div>
-        <div className="absolute top-3 left-3">
-          <span className="bg-gray-900 text-white px-2 py-1 rounded text-xs font-medium tracking-wide">
+        <div className="absolute top-2 left-3">
+          <span className="bg-gray-900 text-white px-2 py-1 opacity-0 group-hover:opacity-85 rounded text-xs font-medium tracking-wide">
             {category}
           </span>
         </div>
