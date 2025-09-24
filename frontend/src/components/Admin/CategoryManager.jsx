@@ -36,13 +36,8 @@ const CategoryManager = () => {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      console.log(
-        "Fetching categories from:",
-        import.meta.env.VITE_BACKEND_URL
-      );
 
       const response = await categoriesAPI.getAll();
-      console.log("API Response:", response);
 
       setCategories(response.data.data);
       setFilteredCategories(response.data.data);

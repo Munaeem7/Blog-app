@@ -1,8 +1,11 @@
+// src/pages/AdminDashboard.jsx
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // Don't forget to import useNavigate
 import BlogEditor from "../components/Admin/BlogEditor";
-import { FiTag } from "react-icons/fi";
 import CategoryManager from "../components/Admin/CategoryManager";
+import { useAuthStore } from "../store/auth.jsx";
 import {
+  FiTag,
   FiMenu,
   FiX,
   FiHome,
@@ -18,13 +21,14 @@ import {
 import { postsAPI, categoriesAPI } from "../Api/Api.jsx";
 
 const AdminDashboard = () => {
-  const [activeSection, setActiveSection] = useState("editor");
+  const navigate = useNavigate();
+  const [activeSection, setActiveSection] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [posts, setPosts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [showNewEditor, setShowNewEditor] = useState(true);
   const [editingPost, setEditingPost] = useState(null);
   const [loading, setLoading] = useState(false);
+  const { logout, user } = useAuthStore();
   const [stats, setStats] = useState({
     totalPosts: 0,
     publishedPosts: 0,
@@ -39,21 +43,30 @@ const AdminDashboard = () => {
     email: "admin@wealthymiles.com",
   };
 
+  // Effect for fetching posts and stats
   useEffect(() => {
-    if (activeSection === 'dashboard' || activeSection === 'posts') {
+    if (activeSection === "dashboard" || activeSection === "posts") {
       fetchPosts();
       fetchStats();
     }
-    
-    if (activeSection === 'editor' || activeSection === 'categories') {
+  }, [activeSection]);
+
+  // Effect for fetching categories
+  useEffect(() => {
+    if (activeSection === "editor" || activeSection === "categories") {
       fetchCategories();
     }
   }, [activeSection]);
 
+  const handleLogout = () => {
+    logout();
+    navigate("/admin");
+  };
+
   const fetchPosts = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const response = await postsAPI.getAll(1, 50); // Get first 50 posts
+      const response = await postsAPI.getAll(1, 50);
       setPosts(response.data.data);
     } catch (error) {
       console.error("Error fetching posts:", error);
@@ -63,8 +76,8 @@ const AdminDashboard = () => {
   };
 
   const fetchCategories = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const response = await categoriesAPI.getAll();
       setCategories(response.data.data);
     } catch (error) {
@@ -75,8 +88,8 @@ const AdminDashboard = () => {
   };
 
   const fetchStats = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const response = await postsAPI.getAll(1, 1000);
       const allPosts = response.data.data;
 
@@ -102,11 +115,8 @@ const AdminDashboard = () => {
 
   const handleSavePost = async (postData) => {
     try {
-      // Remove draft functionality - posts are always published when saved
-      await fetchPosts();
-      setShowNewEditor(false);
-      setEditingPost(null);
-
+      setEditingPost(null); // Clear editing state after saving
+      setActiveSection("posts"); // Navigate back to posts view
       return { success: true };
     } catch (error) {
       console.error("Error handling post save:", error);
@@ -114,49 +124,56 @@ const AdminDashboard = () => {
     }
   };
 
-  // Remove handlePublishPost since all posts are published automatically
   const handleEditPost = (post) => {
     setEditingPost(post);
-    setShowNewEditor(true);
-    setActiveSection("editor");
+    setActiveSection("editor"); // This will trigger the useEffect for categories
   };
 
   const handleDeletePost = async (postId) => {
     if (!window.confirm("Are you sure you want to delete this post?")) return;
 
     try {
+      setLoading(true);
       await postsAPI.delete(postId);
       await fetchPosts();
     } catch (error) {
       console.error("Error deleting post:", error);
       alert("Failed to delete post");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleNewPost = () => {
-    setEditingPost(null);
-    setShowNewEditor(true);
+    setEditingPost(null); // Set editing to null for a new post
+    setActiveSection("editor"); // This will trigger the useEffect for categories
   };
 
-  // Loading component with consistent color scheme
+  // Loading components remain the same
   const LoadingSpinner = ({ size = "medium" }) => (
     <div className="flex justify-center items-center py-8">
-      <div className={`animate-spin rounded-full border-t-2 border-b-2 border-blue-600 ${
-        size === "small" ? "h-6 w-6" : 
-        size === "large" ? "h-12 w-12" : 
-        "h-8 w-8"
-      }`}></div>
+      <div
+        className={`animate-spin rounded-full border-t-2 border-b-2 border-blue-600 ${
+          size === "small"
+            ? "h-6 w-6"
+            : size === "large"
+            ? "h-12 w-12"
+            : "h-8 w-8"
+        }`}
+      ></div>
     </div>
   );
 
   const LoadingSkeleton = ({ type = "card", count = 1 }) => {
     const skeletons = Array.from({ length: count }, (_, i) => i);
-    
     if (type === "card") {
       return (
         <div className="space-y-4">
           {skeletons.map((i) => (
-            <div key={i} className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 animate-pulse">
+            <div
+              key={i}
+              className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 animate-pulse"
+            >
               <div className="flex space-x-4">
                 <div className="flex-1 space-y-3">
                   <div className="h-4 bg-gray-300 rounded w-3/4"></div>
@@ -169,12 +186,14 @@ const AdminDashboard = () => {
         </div>
       );
     }
-    
     if (type === "table") {
       return (
         <div className="space-y-3">
           {skeletons.map((i) => (
-            <div key={i} className="flex items-center justify-between p-4 border border-gray-100 rounded-lg animate-pulse">
+            <div
+              key={i}
+              className="flex items-center justify-between p-4 border border-gray-100 rounded-lg animate-pulse"
+            >
               <div className="flex-1 space-y-2">
                 <div className="h-4 bg-gray-300 rounded w-3/4"></div>
                 <div className="h-3 bg-gray-200 rounded w-1/2"></div>
@@ -185,12 +204,14 @@ const AdminDashboard = () => {
         </div>
       );
     }
-
     if (type === "stats") {
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {skeletons.map((i) => (
-            <div key={i} className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 animate-pulse">
+            <div
+              key={i}
+              className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 animate-pulse"
+            >
               <div className="flex items-center">
                 <div className="p-3 bg-gray-200 rounded-lg w-12 h-12"></div>
                 <div className="ml-4 flex-1 space-y-2">
@@ -203,7 +224,6 @@ const AdminDashboard = () => {
         </div>
       );
     }
-
     return null;
   };
 
@@ -215,7 +235,6 @@ const AdminDashboard = () => {
             <h2 className="text-2xl font-bold text-gray-900 mb-6">
               Dashboard Overview
             </h2>
-            
             {loading ? (
               <LoadingSkeleton type="stats" count={4} />
             ) : (
@@ -274,8 +293,6 @@ const AdminDashboard = () => {
                 </div>
               </div>
             )}
-
-            {/* Recent Posts */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 Recent Posts
@@ -318,7 +335,6 @@ const AdminDashboard = () => {
             </div>
           </div>
         );
-
       case "editor":
         return (
           <div className="p-6">
@@ -326,40 +342,25 @@ const AdminDashboard = () => {
               <h2 className="text-2xl font-bold text-gray-900">
                 {editingPost ? "Edit Post" : "Create New Post"}
               </h2>
-              {!showNewEditor && (
-                <button
-                  onClick={handleNewPost}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center transition-colors"
-                >
-                  <FiPlusCircle className="mr-2" />
-                  New Post
-                </button>
-              )}
             </div>
             {loading ? (
               <LoadingSpinner size="large" />
             ) : (
-              showNewEditor && (
-                <BlogEditor
-                  onSave={handleSavePost}
-                  categories={categories}
-                  initialData={editingPost}
-                  currentUser={currentUser}
-                  // Remove draft functionality - always publish
-                  autoPublish={true}
-                />
-              )
+              <BlogEditor
+                onSave={handleSavePost}
+                categories={categories}
+                initialData={editingPost}
+                currentUser={currentUser}
+                autoPublish={true}
+              />
             )}
           </div>
         );
-
       case "posts":
         return (
           <div className="p-6">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">
-                Manage Posts
-              </h2>
+              <h2 className="text-2xl font-bold text-gray-900">Manage Posts</h2>
               <button
                 onClick={handleNewPost}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center transition-colors"
@@ -368,7 +369,6 @@ const AdminDashboard = () => {
                 New Post
               </button>
             </div>
-            
             {loading ? (
               <LoadingSkeleton type="card" count={6} />
             ) : (
@@ -396,7 +396,10 @@ const AdminDashboard = () => {
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                       {posts.map((post) => (
-                        <tr key={post.id} className="hover:bg-gray-50 transition-colors">
+                        <tr
+                          key={post.id}
+                          className="hover:bg-gray-50 transition-colors"
+                        >
                           <td className="px-6 py-4">
                             <div className="text-sm font-medium text-gray-900">
                               {post.title}
@@ -453,18 +456,12 @@ const AdminDashboard = () => {
             )}
           </div>
         );
-
       case "categories":
         return (
           <div className="p-6">
-            {loading ? (
-              <LoadingSpinner size="large" />
-            ) : (
-              <CategoryManager />
-            )}
+            {loading ? <LoadingSpinner size="large" /> : <CategoryManager />}
           </div>
         );
-
       case "settings":
         return (
           <div className="p-6">
@@ -505,7 +502,6 @@ const AdminDashboard = () => {
             )}
           </div>
         );
-
       default:
         return <div>Select a section</div>;
     }
@@ -516,16 +512,16 @@ const AdminDashboard = () => {
       {/* Sidebar */}
       <div
         className={`
-        fixed lg:static inset-y-0 left-0 z-50 w-64 bg-gray-900 text-white transform transition-transform duration-300 ease-in-out
-        ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-      `}
+          fixed lg:static inset-y-0 left-0 z-50 w-64 bg-gray-900 text-white transform transition-transform duration-300 ease-in-out
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+        `}
       >
         <div className="p-6">
           <h1 className="text-2xl font-bold flex items-center">
-            <span className="bg-white text-gray-900 rounded-md w-8 h-8 flex items-center justify-center mr-3">
+            <span className="bg-white text-gray-900 rounded-full w-10 h-10 flex items-center justify-center mr-3 font-semibold">
               WM
             </span>
-            Admin Panel
+            {user?.name || "Admin"}
           </h1>
         </div>
         <nav className="mt-8">
@@ -541,8 +537,6 @@ const AdminDashboard = () => {
               onClick={() => {
                 setActiveSection(item.id);
                 setSidebarOpen(false);
-                if (item.id === "editor") handleNewPost();
-                if (item.id === 'categories') fetchCategories();
               }}
               className={`w-full flex items-center px-6 py-3 text-left transition-colors ${
                 activeSection === item.id
@@ -556,13 +550,15 @@ const AdminDashboard = () => {
           ))}
         </nav>
         <div className="absolute bottom-0 w-full p-6">
-          <button className="w-full flex items-center text-gray-300 hover:text-white transition-colors">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center text-gray-300 hover:text-white transition-colors"
+          >
             <FiLogOut className="mr-3" />
             Logout
           </button>
         </div>
       </div>
-
       {/* Main content */}
       <div className="flex-1 lg:ml-0">
         {/* Header */}
@@ -590,11 +586,9 @@ const AdminDashboard = () => {
             </div>
           </div>
         </header>
-
         {/* Content */}
         <main className="flex-1 overflow-y-auto">{renderContent()}</main>
       </div>
-
       {/* Overlay for mobile */}
       {sidebarOpen && (
         <div

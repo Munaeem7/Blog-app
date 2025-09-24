@@ -8,7 +8,7 @@ import categoryRoutes from './routes/categories.route.js'
 import commentRoutes from './routes/comments.route.js'
 import subscriberRoutes from './routes/subscribers.route.js'
 import userRoutes from './routes/users.route.js'
-
+import adminRoutes from './routes/admin.route.js'
 env.config()
 const app = express()
 
@@ -16,7 +16,13 @@ app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 app.use(morgan('dev'))
 app.use(helmet())
-app.use(cors({origin:"*" }))
+app.use(cors({
+  origin: "http://localhost:5173", 
+  credentials: true, 
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
 const PORT = process.env.PORT
 
 // Routes
@@ -25,6 +31,7 @@ app.use('/api/v1/categories', categoryRoutes)
 app.use('/api/v1/comments', commentRoutes)
 app.use('/api/v1/subscribers', subscriberRoutes)
 app.use('/api/v1/users', userRoutes)
+app.use('/api/admin', adminRoutes)
 
 // 404 handler
 // app.use('/*', (req, res) => {

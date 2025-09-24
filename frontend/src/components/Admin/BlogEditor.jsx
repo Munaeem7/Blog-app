@@ -87,7 +87,6 @@ const BlogEditor = ({ onSave, onPublish, initialData, categories, currentUser })
     try {
       const response = await postsAPI.getOne(postId);
       const post = response.data.data;
-      
       setTitle(post.title);
       setSlug(post.slug || '');
       setExcerpt(post.excerpt || '');
@@ -185,7 +184,6 @@ const BlogEditor = ({ onSave, onPublish, initialData, categories, currentUser })
     setLoading(true);
     setError('');
     setSuccess('');
-    console.log(editor.getHTML())
     try {
       const postData = {
         title,

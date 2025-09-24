@@ -9,7 +9,6 @@ export const getAllCategories = async (req, res) => {
       GROUP BY c.id
       ORDER BY c.name
     `)
-
     res.status(200).json({
       success: true,
       data: result.rows
