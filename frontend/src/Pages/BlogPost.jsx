@@ -12,7 +12,6 @@ const BlogPost = () => {
   const [loading, setLoading] = useState(true);
   const [relatedPosts, setRelatedPosts] = useState([]);
 
-  // Mock data - replace with API calls
   useEffect(() => {
     const fetchPostData = async () => {
       try {
@@ -24,29 +23,44 @@ const BlogPost = () => {
           throw new Error("Failed to fetch posts");
         }
 
-         const allPosts = data.data;
-        const foundPost = allPosts.find(
-          (p) =>
-            p.category.toLowerCase() === categorySlug.toLowerCase() &&
-            p.slug === postSlug
-        );
+        const allPosts = data.data;
+        
+        // Map database fields to frontend structure
+        const mappedPosts = allPosts.map((dbPost) => ({
+          id: dbPost.id,
+          title: dbPost.title,
+          slug: dbPost.slug,
+          excerpt: dbPost.excerpt,
+          author: dbPost.author || "Admin",
+          publishedDate: dbPost.created_at,
+          category: dbPost.category_name,
+          imageUrl: dbPost.cover_image || "/img1.webp",
+          readTime: dbPost.read_time || "5 min read",
+          content: dbPost.content,
+        }));
+
+        // Find the current post by category and slug
+        const foundPost = mappedPosts.find((p) => {
+          const postCategorySlug = p.category.toLowerCase().replace(/\s+/g, '-');
+          return postCategorySlug === categorySlug.toLowerCase() && p.slug === postSlug;
+        });
 
         if (!foundPost) {
+          console.log("Post not found, redirecting to home");
           navigate("/", { replace: true });
           return;
         }
 
         setPost(foundPost);
 
-        setRelatedPosts(
-          allPosts
-            .filter(
-              (p) =>
-                p.category.toLowerCase() === categorySlug.toLowerCase() &&
-                p.slug !== postSlug
-            )
-            .slice(0, 3)
-        );
+        // Get related posts from the same category
+        const categoryRelatedPosts = mappedPosts.filter((p) => {
+          const postCategorySlug = p.category.toLowerCase().replace(/\s+/g, '-');
+          return postCategorySlug === categorySlug.toLowerCase() && p.slug !== postSlug;
+        });
+
+        setRelatedPosts(categoryRelatedPosts.slice(0, 3));
+
       } catch (error) {
         console.error("Error fetching post data:", error);
         navigate("/", { replace: true });
@@ -100,14 +114,14 @@ const BlogPost = () => {
       <Navbar />
 
       <main className="max-w-4xl mx-auto px-6 py-12">
-        {/* Breadcrumb - UPDATED LINKS */}
+        {/* Breadcrumb */}
         <nav className="text-sm text-gray-500 mb-8">
           <Link to="/" className="hover:text-gray-900">
             Home
           </Link>
           <span className="mx-2">/</span>
           <Link
-            to={`/category/${post.category.toLowerCase()}`}
+            to={`/category/${categorySlug}`}
             className="hover:text-gray-900"
           >
             {post.category}
@@ -120,7 +134,7 @@ const BlogPost = () => {
         <header className="mb-8">
           <div className="flex items-center text-sm text-gray-500 mb-4">
             <Link
-              to={`/category/${post.category.toLowerCase()}`}
+              to={`/category/${categorySlug}`}
               className="bg-gray-100 px-3 py-1 rounded-full text-gray-700 hover:bg-gray-200 transition-colors"
             >
               {post.category}
@@ -148,27 +162,24 @@ const BlogPost = () => {
           </div>
         </header>
 
-        {/* Featured Image */}
-        {post.imageUrl && (
-          <div className="mb-8 rounded-lg overflow-hidden">
-            <img
-              src={post.imageUrl}
-              alt={post.title}
-              className="w-full h-auto object-cover"
-            />
-          </div>
-        )}
+
 
         {/* Content */}
-        <div
-          className="prose prose-lg max-w-none mb-12 text-gray-800"
-          dangerouslySetInnerHTML={{ __html: post.content }}
-        />
+        <div className="prose prose-lg max-w-none mb-12 text-gray-800">
+          {/* Handle both HTML and plain text content */}
+          {post.content && (
+            <div 
+              dangerouslySetInnerHTML={{ 
+                __html: post.content.includes('<') ? post.content : `<p>${post.content.replace(/\n/g, '</p><p>')}</p>` 
+              }} 
+            />
+          )}
+        </div>
 
         {/* Tags */}
         <div className="flex flex-wrap gap-2 mb-12">
           <Link
-            to={`/category/${post.category.toLowerCase()}`}
+            to={`/category/${categorySlug}`}
             className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200 transition-colors"
           >
             #{post.category}
@@ -200,88 +211,82 @@ const BlogPost = () => {
               More in {post.category}
             </h2>
             <div className="grid md:grid-cols-3 gap-6">
-              {relatedPosts.map((relatedPost) => (
-                <article
-                  key={relatedPost.id}
-                  className="group bg-white rounded-lg border border-gray-100 overflow-hidden transition-all duration-300 hover:bg-gray-50 hover:shadow-sm h-full flex flex-col"
-                >
-                  {/* UPDATED LINK */}
-                  <Link
-                    to={`/category/${relatedPost.category.toLowerCase()}/${
-                      relatedPost.slug
-                    }`}
-                    onClick={() => window.scrollTo(0, 0)}
-                    className="block flex-shrink-0"
+              {relatedPosts.map((relatedPost) => {
+                const relatedCategorySlug = relatedPost.category.toLowerCase().replace(/\s+/g, '-');
+                return (
+                  <article
+                    key={relatedPost.id}
+                    className="group bg-white rounded-lg border border-gray-100 overflow-hidden transition-all duration-300 hover:bg-gray-50 hover:shadow-sm h-full flex flex-col"
                   >
-                    <div className="aspect-video bg-gray-100 overflow-hidden">
-                      <img
-                        src={relatedPost.imageUrl}
-                        alt={relatedPost.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    </div>
-                  </Link>
-                  <div className="p-4 flex flex-col flex-grow">
-                    <div className="flex items-center text-xs text-gray-500 mb-2 font-medium">
-                      <time dateTime={relatedPost.publishedDate}>
-                        {formatDate(relatedPost.publishedDate)}
-                      </time>
-                      <span className="mx-1.5">•</span>
-                      <span>{relatedPost.readTime}</span>
-                    </div>
-
-                    {/* UPDATED LINK */}
                     <Link
-                      to={`/category/${relatedPost.category.toLowerCase()}/${
-                        relatedPost.slug
-                      }`}
+                      to={`/category/${relatedCategorySlug}/${relatedPost.slug}`}
                       onClick={() => window.scrollTo(0, 0)}
-                      className="group-hover:text-gray-900 mb-2 flex-grow"
+                      className="block flex-shrink-0"
                     >
-                      <h3 className="text-lg font-semibold text-gray-800 line-clamp-2 leading-tight transition-colors duration-200">
-                        {relatedPost.title}
-                      </h3>
-                    </Link>
-
-                    <p className="text-sm text-gray-600 line-clamp-3 mb-3 leading-relaxed">
-                      {relatedPost.excerpt}
-                    </p>
-
-                    <div className="flex items-center justify-between pt-2 mt-auto">
-                      <div className="flex items-center">
-                        <div className="w-7 h-7 bg-gray-200 rounded-full flex items-center justify-center text-xs font-medium text-gray-600 mr-2">
-                          {getInitials(relatedPost.author)}
-                        </div>
-                        <span className="text-xs font-medium text-gray-700">
-                          {relatedPost.author}
-                        </span>
+                      <div className="aspect-video bg-gray-100 overflow-hidden">
+                        <img
+                          src={relatedPost.imageUrl}
+                          alt={relatedPost.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
                       </div>
-                      {/* UPDATED LINK */}
+                    </Link>
+                    <div className="p-4 flex flex-col flex-grow">
+                      <div className="flex items-center text-xs text-gray-500 mb-2 font-medium">
+                        <time dateTime={relatedPost.publishedDate}>
+                          {formatDate(relatedPost.publishedDate)}
+                        </time>
+                        <span className="mx-1.5">•</span>
+                        <span>{relatedPost.readTime}</span>
+                      </div>
+
                       <Link
-                        to={`/category/${relatedPost.category.toLowerCase()}/${
-                          relatedPost.slug
-                        }`}
+                        to={`/category/${relatedCategorySlug}/${relatedPost.slug}`}
                         onClick={() => window.scrollTo(0, 0)}
-                        className="text-xs font-medium text-gray-900 hover:text-gray-700 transition-colors duration-200 flex items-center"
+                        className="group-hover:text-gray-900 mb-2 flex-grow"
                       >
-                        Read
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-3.5 w-3.5 ml-1"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
+                        <h3 className="text-lg font-semibold text-gray-800 line-clamp-2 leading-tight transition-colors duration-200">
+                          {relatedPost.title}
+                        </h3>
                       </Link>
+
+                      <p className="text-sm text-gray-600 line-clamp-3 mb-3 leading-relaxed">
+                        {relatedPost.excerpt}
+                      </p>
+
+                      <div className="flex items-center justify-between pt-2 mt-auto">
+                        <div className="flex items-center">
+                          <div className="w-7 h-7 bg-gray-200 rounded-full flex items-center justify-center text-xs font-medium text-gray-600 mr-2">
+                            {getInitials(relatedPost.author)}
+                          </div>
+                          <span className="text-xs font-medium text-gray-700">
+                            {relatedPost.author}
+                          </span>
+                        </div>
+                        <Link
+                          to={`/category/${relatedCategorySlug}/${relatedPost.slug}`}
+                          onClick={() => window.scrollTo(0, 0)}
+                          className="text-xs font-medium text-gray-900 hover:text-gray-700 transition-colors duration-200 flex items-center"
+                        >
+                          Read
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-3.5 w-3.5 ml-1"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </Link>
+                      </div>
                     </div>
-                  </div>
-                </article>
-              ))}
+                  </article>
+                );
+              })}
             </div>
           </section>
         )}

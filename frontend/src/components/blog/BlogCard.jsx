@@ -22,10 +22,13 @@ const BlogCard = ({ post }) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
+  // Create category slug for consistent routing
+  const categorySlug = category.toLowerCase().replace(/\s+/g, '-');
+
   return (
     <article className="group bg-white rounded-lg border border-gray-100 overflow-hidden transition-all duration-300 hover:bg-gray-50 hover:shadow-sm cursor-pointer h-full flex flex-col">
       {/* Image container  */}
-      <Link to={`/category/${category.toLowerCase()}/${slug}`} className="block flex-shrink-0 relative">
+      <Link to={`/category/${categorySlug}/${slug}`} className="block flex-shrink-0 relative">
         <div className="aspect-video bg-gray-100 overflow-hidden">
           <img 
             src={imageUrl || "/api/placeholder/300/200"} 
@@ -51,7 +54,7 @@ const BlogCard = ({ post }) => {
         </div>
         
         {/* Title  */}
-        <Link to={`/category/${category.toLowerCase()}/${slug}`} className="group-hover:text-gray-900 mb-2 flex-grow">
+        <Link to={`/category/${categorySlug}/${slug}`} className="group-hover:text-gray-900 mb-2 flex-grow">
           <h3 className="text-lg font-semibold text-gray-800 line-clamp-2 leading-tight transition-colors duration-200">
             {title}
           </h3>
@@ -71,7 +74,7 @@ const BlogCard = ({ post }) => {
             <span className="text-xs font-medium text-gray-700">{author}</span>
           </div>
           <Link 
-            to={`/category/${category.toLowerCase()}/${slug}`}
+            to={`/category/${categorySlug}/${slug}`}
             className="text-xs font-medium text-gray-900 hover:text-gray-700 transition-colors duration-200 flex items-center"
           >
             Read
