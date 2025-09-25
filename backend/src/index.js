@@ -17,7 +17,7 @@ app.use(express.urlencoded({extended: true}))
 app.use(morgan('dev'))
 app.use(helmet())
 app.use(cors({
-  origin: "http://localhost:5173", 
+  origin: ["http://localhost:5173", "https://blog-app-hb.vercel.app/"], 
   credentials: true, 
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
