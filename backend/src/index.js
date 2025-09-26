@@ -19,9 +19,7 @@ app.use(morgan('dev'))
 app.use(helmet())
 app.use(cors({
   origin: ["http://localhost:5173", "https://blog-app-hb.vercel.app"], 
-  credentials: true, 
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  credentials: true
 }));
 app.use(cookieparser());
 
