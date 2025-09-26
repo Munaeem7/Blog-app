@@ -22,7 +22,6 @@ export const login = async (req, res) => {
     }
 
     const user = result.rows[0];
-    console.log(user)
     // Verify password
     const isCorrectPassword = await bcrypt.compare(
       password,
