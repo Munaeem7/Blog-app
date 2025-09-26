@@ -11,7 +11,6 @@ export default function ProtectedRoute({ children }) {
     }
   }, [user, fetchUser]);
 
-  if (loading) return <p className="text-center">Loading...</p>;
   if (!user) return <Navigate to="/admin" replace />;
 
   return children;

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import Navbar from "../components/Navbar/Navbar";
-import Footer from "../components/Navbar/Footer/Footer";
+
 import BlogCard from "../components/blog/BlogCard";
 import { categoriesAPI, postsAPI } from "../Api/Api";
 
@@ -179,18 +178,18 @@ const CategoryPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-white">
-        <Navbar />
+ 
         <div className="flex justify-center items-center h-64">
           <p className="text-gray-600">Loading...</p>
         </div>
-        <Footer />
+
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
-      <Navbar />
+
 
       <main className="bg-white text-gray-900">
         {/* Header with category banner */}
@@ -327,7 +326,7 @@ const CategoryPage = () => {
         </section>
       </main>
 
-      <Footer />
+
     </div>
   );
 };

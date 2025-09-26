@@ -5,6 +5,7 @@ import cors from "cors"
 import morgan from 'morgan'
 import allPost from './routes/allpost.route.js'
 import categoryRoutes from './routes/categories.route.js'
+import cookieparser from 'cookie-parser'
 import commentRoutes from './routes/comments.route.js'
 import subscriberRoutes from './routes/subscribers.route.js'
 import userRoutes from './routes/users.route.js'
@@ -22,6 +23,7 @@ app.use(cors({
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
+app.use(cookieparser());
 
 const PORT = process.env.PORT
 

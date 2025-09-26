@@ -1,14 +1,23 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route  , useLocation} from "react-router-dom";
 import Home from "./Pages/Home";
 import BlogPost from "./Pages/BlogPost";
 import CategoryPage from "./Pages/CategoryPage";
 import AdminDashboard from "./Pages/AdminDashboard";
 import AdminLogin from "./components/Admin/AdminLogin";
 import ProtectedRoute from "./components/ProtectRoute";
+import Navbar from "./components/Navbar/Navbar";
+import Footer from "./components/Navbar/Footer/Footer";
+
 const App = () => {
+  const location = useLocation();
+  const hideLayout =
+    location.pathname.startsWith("/dashboard") ||
+    location.pathname.startsWith("/admin");
+  
   return (
     <div className="min-h-screen">
+     {!hideLayout && <Navbar />}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/category/:categorySlug" element={<CategoryPage />} />
@@ -28,6 +37,7 @@ const App = () => {
 
         <Route path="/admin" element={<AdminLogin />} />
       </Routes>
+      {!hideLayout &&<Footer />}
     </div>
   );
 };

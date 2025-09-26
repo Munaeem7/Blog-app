@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import Navbar from "../components/Navbar/Navbar";
-import Footer from "../components/Navbar/Footer/Footer";
+
 import axios from "axios";
 import { postsAPI } from "../Api/Api";
 
@@ -88,11 +87,11 @@ const BlogPost = () => {
   if (loading) {
     return (
       <div>
-        <Navbar />
+
         <div className="flex justify-center items-center h-64 bg-white">
           <div className="animate-pulse text-gray-600">Loading post...</div>
         </div>
-        <Footer />
+
       </div>
     );
   }
@@ -100,18 +99,18 @@ const BlogPost = () => {
   if (!post) {
     return (
       <div>
-        <Navbar />
+
         <div className="flex justify-center items-center h-64 bg-white">
           <p className="text-gray-600">Post not found</p>
         </div>
-        <Footer />
+
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
-      <Navbar />
+ 
 
       <main className="max-w-4xl mx-auto px-6 py-12">
         {/* Breadcrumb */}
@@ -292,7 +291,7 @@ const BlogPost = () => {
         )}
       </main>
 
-      <Footer />
+
     </div>
   );
 };
