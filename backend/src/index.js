@@ -18,7 +18,7 @@ app.use(express.urlencoded({extended: true}))
 app.use(morgan('dev'))
 app.use(helmet())
 app.use(cors({
-  origin: ["http://localhost:5173", "https://blog-app-hb.vercel.app" , "https://seo-blog-sigma.vercel.app"], 
+  origin: ["http://localhost:5173", "https://blog-app-hb.vercel.app" , "https://seo-blog-sigma.vercel.app" , "https://wealthymiles.com"], 
   credentials: true
 }));
 app.use(cookieparser());
