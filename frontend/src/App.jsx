@@ -8,8 +8,6 @@ import AdminLogin from "./components/Admin/AdminLogin";
 import ProtectedRoute from "./components/ProtectRoute";
 import Navbar from "./components/Navbar/Navbar";
 import Footer from "./components/Navbar/Footer/Footer";
-import Contact from "./Pages/Contact";
-import AboutUs from "./Pages/About";
 
 const App = () => {
   const location = useLocation();
@@ -29,6 +27,9 @@ const App = () => {
           path="/category/:categorySlug/:postSlug"
           element={<BlogPost />}
         />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        
 
         <Route
           path="/dashboard"
