@@ -10,7 +10,7 @@ const Footer = () => {
           {/* Brand Column */}
           <div className="lg:col-span-1">
             <Link to="/" className="flex items-center text-2xl font-bold text-white mb-6">
-              <span className="bg-white text-gray-900 rounded-md w-10 h-10 flex items-center justify-center mr-3">LB</span>
+              <span className="bg-white text-gray-900 rounded-md w-10 h-10 flex items-center justify-center mr-3">WM</span>
               WealthyMiles
             </Link>
             <p className="text-gray-400 mb-6 text-lg">
