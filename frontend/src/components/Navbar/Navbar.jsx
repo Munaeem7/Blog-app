@@ -97,14 +97,23 @@ const Navbar = () => {
           ))}
         </ul>
 
-        {/* Subscribe Button */}
-        <div className="hidden lg:flex items-center">
+        {/* Desktop Buttons */}
+        <div className="hidden lg:flex items-center space-x-4">
           <Link
-            to="/subscribe"
-            className="bg-black text-white px-6 py-2 rounded-md font-medium text-lg hover:bg-gray-800 transition-colors duration-200"
+            to="/about"
+            className="relative text-gray-600 px-6 py-2 rounded-md font-medium text-lg transition-all duration-300 hover:text-gray-900 hover:bg-gray-50 hover:shadow-md hover:-translate-y-0.5 group"
             onClick={() => window.scrollTo(0, 0)}
           >
-            Subscribe
+            About Us
+            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gray-900 transition-all duration-300 group-hover:w-full"></span>
+          </Link>
+          <Link
+            to="/contact"
+            className="relative bg-black text-white px-6 py-2 rounded-md font-medium text-lg transition-all duration-300 hover:bg-gray-800 hover:shadow-lg hover:-translate-y-0.5 hover:scale-105 group overflow-hidden"
+            onClick={() => window.scrollTo(0, 0)}
+          >
+            <span className="relative z-10">Contact</span>
+            <span className="absolute inset-0 bg-gradient-to-r from-gray-700 to-gray-900 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></span>
           </Link>
         </div>
 
@@ -142,13 +151,21 @@ const Navbar = () => {
               </li>
             ))}
           </ul>
-          <div className="mt-4 pt-4 border-t border-gray-100">
+          <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
+            <Link
+              to="/about"
+              onClick={handleCategoryClick}
+              className="block w-full text-gray-600 text-center py-3 rounded-md font-medium text-lg hover:text-gray-900 hover:bg-gray-50 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+            >
+              About Us
+            </Link>
             <Link
               to="/contact"
               onClick={handleCategoryClick}
               className="block w-full bg-gray-900 text-white text-center py-3 rounded-md font-medium text-lg hover:bg-gray-800 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 hover:scale-105 relative overflow-hidden group"
             >
-              Subscribe
+              <span className="relative z-10">Contact</span>
+              <span className="absolute inset-0 bg-gradient-to-r from-gray-700 to-gray-900 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></span>
             </Link>
           </div>
         </div>
