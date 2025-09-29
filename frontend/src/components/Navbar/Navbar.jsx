@@ -97,14 +97,21 @@ const Navbar = () => {
           ))}
         </ul>
 
-        {/* Subscribe Button */}
-        <div className="hidden lg:flex items-center">
+        {/* About and Contact Us Buttons */}
+        <div className="hidden lg:flex items-center space-x-4">
           <Link
-            to="/subscribe"
+            to="/about"
+            className="bg-white text-black px-6 py-2 border border-black rounded-md font-medium text-lg hover:bg-gray-50 transition-colors duration-200"
+            onClick={() => window.scrollTo(0, 0)}
+          >
+            About
+          </Link>
+          <Link
+            to="/contact"
             className="bg-black text-white px-6 py-2 rounded-md font-medium text-lg hover:bg-gray-800 transition-colors duration-200"
             onClick={() => window.scrollTo(0, 0)}
           >
-            Subscribe
+            Contact Us
           </Link>
         </div>
 
@@ -142,13 +149,20 @@ const Navbar = () => {
               </li>
             ))}
           </ul>
-          <div className="mt-4 pt-4 border-t border-gray-100">
+          <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
             <Link
-              to="/subscribe"
+              to="/about"
+              onClick={handleCategoryClick}
+              className="block w-full bg-white text-black text-center py-3 border border-black rounded-md font-medium text-lg hover:bg-gray-50 transition-colors duration-200"
+            >
+              About
+            </Link>
+            <Link
+              to="/contact"
               onClick={handleCategoryClick}
               className="block w-full bg-gray-900 text-white text-center py-3 rounded-md font-medium text-lg hover:bg-gray-800 transition-colors duration-200"
             >
-              Subscribe
+              Contact Us
             </Link>
           </div>
         </div>
