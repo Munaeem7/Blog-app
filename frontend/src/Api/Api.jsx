@@ -5,33 +5,6 @@ export const api = axios.create({
   withCredentials: true 
 });
 
-// Add request interceptor for authentication tokens if needed
-// api.interceptors.request.use(
-//   (config) => {
-//     const token = localStorage.getItem('authToken');
-//     if (token) {
-//       config.headers.Authorization = `Bearer ${token}`;
-//     }
-//     return config;
-//   },
-//   (error) => {
-//     return Promise.reject(error);
-//   }
-// );
-
-// Add response interceptor for error handling
-// api.interceptors.response.use(
-//   (response) => response,
-//   (error) => {
-//     if (error.response?.status === 401) {
-//       // Handle unauthorized access
-//       localStorage.removeItem('authToken');
-//       window.location.href = '/login';
-//     }
-//     return Promise.reject(error);
-//   }
-// );
-
 // API methods
 export const postsAPI = {
   getAll: (page = 1, limit = 10) => api.get(`/api/v1/allposts?page=${page}&limit=${limit}`),
@@ -48,7 +21,15 @@ export const categoriesAPI = {
   update: (id, categoryData) => api.put(`/api/v1/categories/${id}`, categoryData),
   delete: (id) => api.delete(`/api/v1/categories/${id}`),
 };
-
-
+export const contactAPI = {
+  // Create new contact submission
+  create: (contactData) => api.post('/api/contact', contactData),
+  getAll: (page = 1, limit = 10, status = 'all') => 
+    api.get(`/api/contact?page=${page}&limit=${limit}&status=${status}`),
+  getOne: (id) => api.get(`/api/contact/${id}`),
+  updateStatus: (id, status) => api.put(`/api/contact/${id}`, { status }),
+  delete: (id) => api.delete(`/api/contact/${id}`),
+  getStats: () => api.get('/api/contact/stats/summary'),
+};
 
 export default api;

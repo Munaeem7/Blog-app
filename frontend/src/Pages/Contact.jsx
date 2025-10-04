@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import axios from 'axios';
 import { 
   Send, 
   MapPin, 
@@ -9,7 +10,9 @@ import {
   User,
   MessageCircle,
   Plane,
-  TrendingUp
+  TrendingUp,
+  CheckCircle,
+  XCircle
 } from 'lucide-react';
 
 const Contact = () => {
@@ -21,26 +24,67 @@ const Contact = () => {
   });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState('');
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
+    // Clear errors when user starts typing
+    if (error) setError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setLoading(false);
-    setSuccess(true);
-    setFormData({ name: '', email: '', subject: '', message: '' });
-    
-    setTimeout(() => setSuccess(false), 5000);
+    try {
+      console.log('Sending form data:', formData); // Debug log
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/contact`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          timeout: 10000, // 10 seconds timeout
+        }
+      );
+
+      console.log('Backend response:', response); // Debug log
+
+      // Check if the response indicates success based on your backend structure
+      if (response.data && response.data.success) {
+        setSuccess(true);
+        setFormData({ name: '', email: '', subject: '', message: '' });
+        
+        // Auto-hide success message after 5 seconds
+        setTimeout(() => setSuccess(false), 5000);
+      } else {
+        throw new Error(response.data.message || 'Failed to send message');
+      }
+    } catch (err) {
+      console.error('Contact form submission error:', err);
+      
+      if (err.response) {
+        // Server responded with error status
+        const errorMessage = err.response.data?.message || 
+                           err.response.data?.error || 
+                           'Failed to send message. Please try again.';
+        setError(errorMessage);
+      } else if (err.request) {
+        // Request was made but no response received
+        setError('Network error. Please check your connection and try again.');
+      } else {
+        // Something else happened
+        setError('An unexpected error occurred. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const containerVariants = {
@@ -191,13 +235,33 @@ const Contact = () => {
                 Whether it's about travel tips or financial advice, we'd love to hear from you.
               </p>
 
+              {/* Success Message */}
               {success && (
                 <motion.div 
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700"
+                  className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700 flex items-center space-x-3"
                 >
-                  Thank you for your message! We'll get back to you within 24 hours.
+                  <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">Thank you for your message!</p>
+                    <p className="text-sm">We'll get back to you within 24 hours.</p>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Error Message */}
+              {error && (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 flex items-center space-x-3"
+                >
+                  <XCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">Error sending message</p>
+                    <p className="text-sm">{error}</p>
+                  </div>
                 </motion.div>
               )}
 
@@ -218,6 +282,7 @@ const Contact = () => {
                         onChange={handleChange}
                         className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                         placeholder="John Doe"
+                        disabled={loading}
                       />
                     </div>
                   </div>
@@ -237,6 +302,7 @@ const Contact = () => {
                         onChange={handleChange}
                         className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                         placeholder="john@example.com"
+                        disabled={loading}
                       />
                     </div>
                   </div>
@@ -253,14 +319,15 @@ const Contact = () => {
                     value={formData.subject}
                     onChange={handleChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    disabled={loading}
                   >
                     <option value="">Select a topic</option>
-                    <option value="travel">Travel Advice & Tips</option>
-                    <option value="finance">Financial Planning</option>
-                    <option value="credit-cards">Credit Card Rewards</option>
-                    <option value="investment">Travel Investment</option>
-                    <option value="partnership">Partnership Inquiry</option>
-                    <option value="other">Other</option>
+                    <option value="Travel Advice & Tips">Travel Advice & Tips</option>
+                    <option value="Financial Planning">Financial Planning</option>
+                    <option value="Credit Card Rewards">Credit Card Rewards</option>
+                    <option value="Travel Investment">Travel Investment</option>
+                    <option value="Partnership Inquiry">Partnership Inquiry</option>
+                    <option value="Other">Other</option>
                   </select>
                 </div>
 
@@ -279,6 +346,7 @@ const Contact = () => {
                       onChange={handleChange}
                       className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
                       placeholder="Tell us about your travel goals or financial questions..."
+                      disabled={loading}
                     />
                   </div>
                 </div>
@@ -286,8 +354,8 @@ const Contact = () => {
                 <motion.button
                   type="submit"
                   disabled={loading}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: loading ? 1 : 1.02 }}
+                  whileTap={{ scale: loading ? 1 : 0.98 }}
                   className="w-full bg-gradient-to-r from-blue-600 to-green-600 text-white py-4 px-6 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                 >
                   {loading ? (

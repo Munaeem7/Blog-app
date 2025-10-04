@@ -10,6 +10,7 @@ import commentRoutes from './routes/comments.route.js'
 import subscriberRoutes from './routes/subscribers.route.js'
 import userRoutes from './routes/users.route.js'
 import adminRoutes from './routes/admin.route.js'
+import contactRoutes from './routes/contact.route.js'
 env.config()
 const app = express()
 
@@ -32,7 +33,7 @@ app.use('/api/v1/comments', commentRoutes)
 app.use('/api/v1/subscribers', subscriberRoutes)
 app.use('/api/v1/users', userRoutes)
 app.use('/api/admin', adminRoutes)
-
+app.use("/api/contact",contactRoutes)
 // 404 handler
 // app.use('/*', (req, res) => {
 //   res.status(404).json({

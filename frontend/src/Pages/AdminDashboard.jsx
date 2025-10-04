@@ -1,8 +1,9 @@
 // src/pages/AdminDashboard.jsx
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom"; // Don't forget to import useNavigate
+import { useNavigate } from "react-router-dom";
 import BlogEditor from "../components/Admin/BlogEditor";
 import CategoryManager from "../components/Admin/CategoryManager";
+import ContactSubmissions from "../components/Admin/ContactSubmissions"; // We'll create this
 import { useAuthStore } from "../store/auth.jsx";
 import {
   FiTag,
@@ -17,6 +18,8 @@ import {
   FiPlusCircle,
   FiEdit,
   FiTrash2,
+  FiMail,
+  FiMessageSquare,
 } from "react-icons/fi";
 import { postsAPI, categoriesAPI } from "../Api/Api.jsx";
 
@@ -34,6 +37,7 @@ const AdminDashboard = () => {
     publishedPosts: 0,
     totalViews: 0,
     totalComments: 0,
+    unreadMessages: 0,
   });
 
   // Mock current user (replace with actual auth)
@@ -100,11 +104,15 @@ const AdminDashboard = () => {
         0
       );
 
+      // Mock unread messages count - replace with actual API call
+      const unreadMessages = 3; // This should come from your contact API
+
       setStats({
         totalPosts,
         publishedPosts,
         totalViews,
         totalComments: 0,
+        unreadMessages,
       });
     } catch (error) {
       console.error("Error fetching stats:", error);
@@ -149,7 +157,7 @@ const AdminDashboard = () => {
     setActiveSection("editor"); // This will trigger the useEffect for categories
   };
 
-  // Loading components remain the same
+  // Loading components
   const LoadingSpinner = ({ size = "medium" }) => (
     <div className="flex justify-center items-center py-8">
       <div
@@ -236,7 +244,7 @@ const AdminDashboard = () => {
               Dashboard Overview
             </h2>
             {loading ? (
-              <LoadingSkeleton type="stats" count={4} />
+              <LoadingSkeleton type="stats" count={5} />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
@@ -281,12 +289,12 @@ const AdminDashboard = () => {
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
                   <div className="flex items-center">
                     <div className="p-3 bg-yellow-100 rounded-lg">
-                      <FiFileText className="text-yellow-600 text-xl" />
+                      <FiMail className="text-yellow-600 text-xl" />
                     </div>
                     <div className="ml-4">
-                      <p className="text-sm text-gray-600">Comments</p>
+                      <p className="text-sm text-gray-600">Unread Messages</p>
                       <p className="text-2xl font-bold text-gray-900">
-                        {stats.totalComments}
+                        {stats.unreadMessages}
                       </p>
                     </div>
                   </div>
@@ -462,6 +470,19 @@ const AdminDashboard = () => {
             {loading ? <LoadingSpinner size="large" /> : <CategoryManager />}
           </div>
         );
+      case "messages":
+        return (
+          <div className="p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              Contact Submissions
+            </h2>
+            {loading ? (
+              <LoadingSpinner size="large" />
+            ) : (
+              <ContactSubmissions />
+            )}
+          </div>
+        );
       case "settings":
         return (
           <div className="p-6">
@@ -530,6 +551,12 @@ const AdminDashboard = () => {
             { id: "editor", label: "Editor", icon: FiFileText },
             { id: "posts", label: "All Posts", icon: FiFileText },
             { id: "categories", label: "Categories", icon: FiTag },
+            { 
+              id: "messages", 
+              label: "Messages", 
+              icon: FiMail,
+              badge: stats.unreadMessages > 0 ? stats.unreadMessages : null
+            },
             { id: "settings", label: "Settings", icon: FiSettings },
           ].map((item) => (
             <button
@@ -538,7 +565,7 @@ const AdminDashboard = () => {
                 setActiveSection(item.id);
                 setSidebarOpen(false);
               }}
-              className={`w-full flex items-center px-6 py-3 text-left transition-colors ${
+              className={`w-full flex items-center px-6 py-3 text-left transition-colors relative ${
                 activeSection === item.id
                   ? "bg-gray-800 text-white"
                   : "text-gray-300 hover:bg-gray-800 hover:text-white"
@@ -546,6 +573,11 @@ const AdminDashboard = () => {
             >
               <item.icon className="mr-3" />
               {item.label}
+              {item.badge && (
+                <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {item.badge}
+                </span>
+              )}
             </button>
           ))}
         </nav>
@@ -576,6 +608,7 @@ const AdminDashboard = () => {
                 {activeSection === "editor" && "Post Editor"}
                 {activeSection === "posts" && "Manage Posts"}
                 {activeSection === "categories" && "Categories"}
+                {activeSection === "messages" && "Contact Messages"}
                 {activeSection === "settings" && "Settings"}
               </h1>
             </div>

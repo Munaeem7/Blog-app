@@ -19,12 +19,9 @@ const CategoryPage = () => {
     const fetchCategoryData = async () => {
       try {
         setLoading(true);
-
-        console.log("Fetching data for category slug:", categorySlug);
-
         // Fetch categories from API
         const categoriesResponse = await categoriesAPI.getAll();
-        console.log("Categories API response:", categoriesResponse);
+       
 
         // Handle different response structures for categories
         let categoriesData = [];
@@ -47,7 +44,6 @@ const CategoryPage = () => {
             categoriesResponse.categories || categoriesResponse.data || [];
         }
 
-        console.log("Extracted categories data:", categoriesData);
         setAllCategories(Array.isArray(categoriesData) ? categoriesData : []);
 
         // Find the current category by slug
