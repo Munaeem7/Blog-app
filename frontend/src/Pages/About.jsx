@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { 
   Users, 
   Target, 
@@ -376,6 +377,7 @@ const AboutUs = () => {
               Join our community of 50,000+ readers who are transforming their finances 
               while exploring the world.
             </p>
+            <Link to="/">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -383,6 +385,7 @@ const AboutUs = () => {
             >
               Explore Our Latest Guides
             </motion.button>
+            </Link>
           </motion.div>
         </div>
       </section>
