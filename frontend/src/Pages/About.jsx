@@ -23,7 +23,7 @@ const AboutUs = () => {
       name: "Muhammad Ahmad",
       role: "CEO",
       image: "https://res.cloudinary.com/df65hidyu/image/upload/c_fill,ar_16:9,g_auto/v1759565188/ceo_fic1sn.jpg",
-      bio: "Former financial analyst turned travel enthusiast. Sarah combines her expertise in finance with her passion for exploration to help others achieve financial freedom through smart travel.",
+      bio: "Ahmad leads WealthyMiles with full creative and operational control, shaping every part of the brand from strategy to execution. His approach is fast, focused, and detail-driven, combining clarity, structure, and adaptability to deliver content that’s built to perform.",
       email: "muhammadahmadsidhu26.com",
       linkedin: "https://linkedin.com/in/ahmadaliSidhu",
       twitter: "https://twitter.com/ahmadalisidhu26"
@@ -31,7 +31,7 @@ const AboutUs = () => {
     {
       name: "Zohaib Ali Virk",
       role: "Head of Content & Travel Expert",
-      image: "https://res.cloudinary.com/df65hidyu/image/upload/c_fill,ar_16:9,g_auto/v1759565199/strategist_nimact.jpg",
+      image: "https://res.cloudinary.com/df65hidyu/image/upload/c_fill,ar_16:9,g_auto/v1759602283/updated_fnucev.jpg",
       bio: "With over 50 countries visited, Marcus brings firsthand experience in budget travel, luxury experiences, and everything in between. His expertise lies in maximizing value while exploring the world.",
       email: "zohaibvirk@gmail.com",
       linkedin: "https://linkedin.com/in/zohaibalivirk",
