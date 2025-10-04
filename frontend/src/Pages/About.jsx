@@ -21,29 +21,29 @@ const AboutUs = () => {
     {
       name: "Muhammad Ahmad",
       role: "CEO",
-      image: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=500&q=80",
+      image: "https://res.cloudinary.com/df65hidyu/image/upload/c_fill,ar_16:9,g_auto/v1759565188/ceo_fic1sn.jpg",
       bio: "Former financial analyst turned travel enthusiast. Sarah combines her expertise in finance with her passion for exploration to help others achieve financial freedom through smart travel.",
       email: "muhammadahmadsidhu26.com",
-      linkedin: "https://linkedin.com/in/sarahchen",
-      twitter: "https://twitter.com/sarahchen"
+      linkedin: "https://linkedin.com/in/ahmadaliSidhu",
+      twitter: "https://twitter.com/ahmadalisidhu26"
     },
     {
       name: "Zohaib Ali Virk",
       role: "Head of Content & Travel Expert",
-      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=500&q=80",
+      image: "https://res.cloudinary.com/df65hidyu/image/upload/c_fill,ar_16:9,g_auto/v1759565199/strategist_nimact.jpg",
       bio: "With over 50 countries visited, Marcus brings firsthand experience in budget travel, luxury experiences, and everything in between. His expertise lies in maximizing value while exploring the world.",
       email: "zohaibvirk@gmail.com",
-      linkedin: "https://linkedin.com/in/marcusrodriguez",
-      twitter: "https://twitter.com/marcusrod"
+      linkedin: "https://linkedin.com/in/zohaibalivirk",
+      twitter: "https://twitter.com/zohaibvirk"
     },
     {
-      name: "Sidhu Moose Wala",
-      role: "Financial Strategist",
-      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=500&q=80",
-      bio: "PhD in Economics with 15 years in wealth management. Emily specializes in creating sustainable financial plans that enable long-term travel and early retirement strategies.",
-      email: "emily@wealthymiles.com",
-      linkedin: "https://linkedin.com/in/emilywatson",
-      twitter: "https://twitter.com/emilywatsonphd"
+      name: "Abdullah Bhatti",
+      role: "SEO Advisor",
+      image: "https://res.cloudinary.com/df65hidyu/image/upload/c_fill,ar_16:9,g_auto/v1759566193/tinywow_change_bg_photo_44363813_kdkuxx.png",
+      bio: "BS in Software Engineering. Massive hands on Search Engine Optimzation. He done his certification from Google courses and inperson with experienced instructors who solid grip in this industry.",
+      email: "abdullahrasheed2547@gmail.com",
+      linkedin: "https://www.linkedin.com/in/abdullah-bhatti-322a97264/",
+      twitter: "https://twitter.com/abdullahbhatti7073"
     }
   ];
 
