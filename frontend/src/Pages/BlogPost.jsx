@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-
-import axios from "axios";
 import { postsAPI } from "../Api/Api";
 
 const BlogPost = () => {
@@ -87,11 +85,9 @@ const BlogPost = () => {
   if (loading) {
     return (
       <div>
-
         <div className="flex justify-center items-center h-64 bg-white">
           <div className="animate-pulse text-gray-600">Loading post...</div>
         </div>
-
       </div>
     );
   }
@@ -99,19 +95,15 @@ const BlogPost = () => {
   if (!post) {
     return (
       <div>
-
         <div className="flex justify-center items-center h-64 bg-white">
           <p className="text-gray-600">Post not found</p>
         </div>
-
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
- 
-
       <main className="max-w-4xl mx-auto px-6 py-12">
         {/* Breadcrumb */}
         <nav className="text-sm text-gray-500 mb-8">
@@ -146,7 +138,7 @@ const BlogPost = () => {
             <span>{post.readTime}</span>
           </div>
 
-          <h1 className="text-4xl font-bold text-gray-900 mb-6">
+          <h1 className="text-4xl font-bold text-gray-900 mb-6 leading-tight">
             {post.title}
           </h1>
 
@@ -161,13 +153,11 @@ const BlogPost = () => {
           </div>
         </header>
 
-
-
         {/* Content */}
-        <div className="prose prose-lg max-w-none mb-12 text-gray-800">
-          {/* Handle both HTML and plain text content */}
+        <div className="blog-content mb-12">
           {post.content && (
             <div 
+              className="editor-content-styling"
               dangerouslySetInnerHTML={{ 
                 __html: post.content.includes('<') ? post.content : `<p>${post.content.replace(/\n/g, '</p><p>')}</p>` 
               }} 
@@ -291,7 +281,169 @@ const BlogPost = () => {
         )}
       </main>
 
+      {/* Add the same CSS styles as the editor */}
+      <style jsx>{`
+        .blog-content {
+          font-family: Inter, sans-serif;
+          line-height: 1.7;
+          color: #374151;
+          font-size: 1.125rem;
+        }
 
+        .editor-content-styling {
+          font-family: Inter, sans-serif;
+          line-height: 1.7;
+          color: #374151;
+          font-size: 1.125rem;
+        }
+
+        .editor-content-styling h1 {
+          font-size: 2.25rem;
+          font-weight: 700;
+          margin-top: 2rem;
+          margin-bottom: 1rem;
+          line-height: 1.2;
+          color: #111827;
+        }
+
+        .editor-content-styling h2 {
+          font-size: 1.875rem;
+          font-weight: 700;
+          margin-top: 1.75rem;
+          margin-bottom: 0.875rem;
+          line-height: 1.3;
+          color: #111827;
+        }
+
+        .editor-content-styling h3 {
+          font-size: 1.5rem;
+          font-weight: 600;
+          margin-top: 1.5rem;
+          margin-bottom: 0.75rem;
+          line-height: 1.4;
+          color: #111827;
+        }
+
+        .editor-content-styling p {
+          margin-bottom: 1.5rem;
+          line-height: 1.7;
+        }
+
+        .editor-content-styling ul,
+        .editor-content-styling ol {
+          padding-left: 1.75rem;
+          margin-bottom: 1.5rem;
+        }
+
+        .editor-content-styling ul {
+          list-style-type: disc;
+        }
+
+        .editor-content-styling ol {
+          list-style-type: decimal;
+        }
+
+        .editor-content-styling li {
+          margin-bottom: 0.5rem;
+          line-height: 1.6;
+        }
+
+        .editor-content-styling blockquote {
+          border-left: 4px solid #d1d5db;
+          padding-left: 1.5rem;
+          padding-top: 0.5rem;
+          padding-bottom: 0.5rem;
+          color: #6b7280;
+          font-style: italic;
+          margin: 2rem 0;
+          background-color: #f9fafb;
+          border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .editor-content-styling img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 0.75rem;
+          margin: 2rem auto;
+          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+          display: block;
+        }
+
+        .editor-content-styling a {
+          color: #2563eb;
+          text-decoration: underline;
+          cursor: pointer;
+          font-weight: 500;
+        }
+
+        .editor-content-styling a:hover {
+          color: #1d4ed8;
+        }
+
+        .editor-content-styling code {
+          background-color: #f3f4f6;
+          padding: 0.25rem 0.5rem;
+          border-radius: 0.375rem;
+          font-family: 'Courier New', monospace;
+          font-size: 0.9em;
+          color: #dc2626;
+          font-weight: 500;
+        }
+
+        .editor-content-styling pre {
+          background-color: #1f2937;
+          color: #f9fafb;
+          padding: 1.5rem;
+          border-radius: 0.75rem;
+          overflow-x: auto;
+          font-family: 'Courier New', monospace;
+          font-size: 0.9em;
+          margin: 2rem 0;
+          white-space: pre-wrap;
+          word-break: break-word;
+          line-height: 1.5;
+        }
+
+        .editor-content-styling pre code {
+          background: none;
+          color: inherit;
+          padding: 0;
+          border-radius: 0;
+          font-size: inherit;
+        }
+
+        .editor-content-styling strong {
+          font-weight: 700;
+          color: #111827;
+        }
+
+        .editor-content-styling em {
+          font-style: italic;
+        }
+
+        .editor-content-styling u {
+          text-decoration: underline;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+          .editor-content-styling h1 {
+            font-size: 1.875rem;
+          }
+          
+          .editor-content-styling h2 {
+            font-size: 1.5rem;
+          }
+          
+          .editor-content-styling h3 {
+            font-size: 1.25rem;
+          }
+          
+          .editor-content-styling {
+            font-size: 1rem;
+          }
+        }
+      `}</style>
     </div>
   );
 };
