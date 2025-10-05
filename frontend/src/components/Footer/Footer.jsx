@@ -43,11 +43,7 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold mb-6">Categories</h3>
             <ul className="space-y-3">
-              <li>
-                <Link to="/technology" className="text-gray-400 hover:text-white transition-colors duration-200 text-lg">
-                  Technology
-                </Link>
-              </li>
+              
               <li>
                 <Link to="/finance" className="text-gray-400 hover:text-white transition-colors duration-200 text-lg">
                   Finance
@@ -56,16 +52,6 @@ const Footer = () => {
               <li>
                 <Link to="/travel" className="text-gray-400 hover:text-white transition-colors duration-200 text-lg">
                   Travel
-                </Link>
-              </li>
-              <li>
-                <Link to="/business" className="text-gray-400 hover:text-white transition-colors duration-200 text-lg">
-                  Business
-                </Link>
-              </li>
-              <li>
-                <Link to="/luxury" className="text-gray-400 hover:text-white transition-colors duration-200 text-lg">
-                  Luxury
                 </Link>
               </li>
               <li>
@@ -85,21 +71,14 @@ const Footer = () => {
                   About Us
                 </Link>
               </li>
-              <li>
-                <Link to="/careers" className="text-gray-400 hover:text-white transition-colors duration-200 text-lg">
-                  Careers
-                </Link>
-              </li>
+             
+             
               <li>
                 <Link to="/contact" onScroll={window.scrollTo(0,0)} className="text-gray-400 hover:text-white transition-colors duration-200 text-lg">
                   Contact
                 </Link>
               </li>
-              <li>
-                <Link to="/advertise" className="text-gray-400 hover:text-white transition-colors duration-200 text-lg">
-                  Advertise
-                </Link>
-              </li>
+             
               <li>
                 <Link to="/privacy" className="text-gray-400 hover:text-white transition-colors duration-200 text-lg">
                   Privacy Policy

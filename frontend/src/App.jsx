@@ -11,7 +11,8 @@ import Navbar from "./components/Navbar/Navbar.jsx";
 import Footer from "./components/Footer/Footer.jsx";
 import Contact from "./Pages/Contact.jsx";
 import AboutUs from "./Pages/About.jsx";
-
+import PrivacyPolicy from './Pages/PrivacyPolicy.jsx'
+import TermsAndConditions from "./Pages/TermsAndCondtions.jsx";
 const App = () => {
   const location = useLocation();
   const GA_TRACKING_ID = 'G-D0PK2YETP5';
@@ -42,6 +43,8 @@ const App = () => {
         <Route path="/" element={<Home />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/about" element={<AboutUs />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsAndConditions />} />
         <Route path="/category/:categorySlug" element={<CategoryPage />} />
         <Route
           path="/category/:categorySlug/:postSlug"
