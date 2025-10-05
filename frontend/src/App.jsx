@@ -8,7 +8,7 @@ import AdminDashboard from "./Pages/AdminDashboard.jsx";
 import AdminLogin from "./components/Admin/AdminLogin.jsx";
 import ProtectedRoute from "./components/ProtectRoute.jsx";
 import Navbar from "./components/Navbar/Navbar.jsx";
-import Footer from "./components/Navbar/Footer/Footer.jsx";
+import Footer from "./components/Footer/Footer.jsx";
 import Contact from "./Pages/Contact.jsx";
 import AboutUs from "./Pages/About.jsx";
 
