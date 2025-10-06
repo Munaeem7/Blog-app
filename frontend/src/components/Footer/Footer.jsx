@@ -45,17 +45,17 @@ const Footer = () => {
             <ul className="space-y-3">
               
               <li>
-                <Link to="/finance" className="text-gray-400 hover:text-white transition-colors duration-200 text-lg">
+                <Link to="/category/finance" className="text-gray-400 hover:text-white transition-colors duration-200 text-lg">
                   Finance
                 </Link>
               </li>
               <li>
-                <Link to="/travel" className="text-gray-400 hover:text-white transition-colors duration-200 text-lg">
+                <Link to="/category/travel" className="text-gray-400 hover:text-white transition-colors duration-200 text-lg">
                   Travel
                 </Link>
               </li>
               <li>
-                <Link to="/lifestyle" className="text-gray-400 hover:text-white transition-colors duration-200 text-lg">
+                <Link to="/category/lifestyle" className="text-gray-400 hover:text-white transition-colors duration-200 text-lg">
                   Lifestyle
                 </Link>
               </li>
